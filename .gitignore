@@ -1,0 +1,5 @@
+# Native VSCode directory
+.vscode
+
+# Native MacOS files
+*.DS_Store
