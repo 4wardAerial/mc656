@@ -15,7 +15,7 @@ export enum SessionState {
     Opening = 'Opening',
     Voting = 'Voting',
     Closing = 'Closing',
-    Tallying = 'Tallying',
+    Tallying = 'Counting',
     Result = 'Result'
 }
 
@@ -36,6 +36,18 @@ export class VotingSession {
     }
 
     // -=-=-=-=-=-=-=-=-=- State Machine -=-=-=-=-=-=-=-=-=-
+
+    // -=-=-=-=-=-=-=-=-=- Register Vote -=-=-=-=-=-=-=-=-=-
+
+    public registerVote(vote: IVote): void {
+        if (vote === null) {
+            throw new Error("Vote cannot be null.");
+        }
+        if (this.state !== SessionState.Voting) {
+            throw new Error("Votes can only be registered during Voting state.");
+        }
+        this.votes.push(vote);
+    }
 
     // -=-=-=-=-=-=-=-=-=- Voting Result -=-=-=-=-=-=-=-=-=-
 
