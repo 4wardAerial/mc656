@@ -1,1 +1,0 @@
-const unusedVariable = 'this should trigger no-unused-vars'
