@@ -4,7 +4,6 @@ import {
     SessionState,
     ConclaveVote,
     ONUVote,
-    CondominiumVote,
     type ICandidate,
     type IVote,
     type ICountingStrategy,
@@ -33,7 +32,9 @@ describe("VotingSession - State Machine and Mocking", () => {
         expect(session.getState()).toBe(SessionState.Result);
 
         // Business Rule Infraction
-        expect(session.openSession()).toThrow("Session can only start Voting right after Opening.");
+        expect(() => session.openSession()).toThrow(
+            "Session has already been opened once."
+        );
     });
 
     test("Should handle boolean and candidate results", () => {
