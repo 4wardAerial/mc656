@@ -2,12 +2,14 @@ import { expect, test, describe } from "vitest";
 import {
     VotingSession,
     SessionState,
+} from "./voting-session"
+import {
     ConclaveVote,
     ONUVote,
     type ICandidate,
     type IVote,
     type ICountingStrategy,
-} from "./voting-session"
+} from "./Vote"
 
 describe("VotingSession - State Machine and Mocking", () => {
 
