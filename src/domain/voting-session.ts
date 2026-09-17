@@ -10,6 +10,9 @@ export interface ICountingStrategy {
     calculate(votes: IVote[]): boolean;
 }
 
+// -=-=-=-=-=-=-=-=-=- Voting Session Class -=-=-=-=-=-=-=-=-=-
+
+// Possible states
 export enum SessionState {
     Setup = 'Setup',
     Opening = 'Opening',
@@ -19,16 +22,17 @@ export enum SessionState {
     Result = 'Result'
 }
 
-// -=-=-=-=-=-=-=-=-=- Voting Session Class -=-=-=-=-=-=-=-=-=-
-
 export class VotingSession {
     private state: SessionState;
     private votes: IVote[];
     private strategy: ICountingStrategy;
     private isApproved: boolean | null;
 
-    // Possible states
     constructor(strategy: ICountingStrategy) {
+        if (strategy === null) {
+            throw new Error("Strategy cannot be null.");
+        }
+
         this.state = SessionState.Setup;
         this.votes = [];
         this.strategy = strategy;
@@ -64,15 +68,11 @@ export class VotingSession {
         }
         this.state = SessionState.Counting;
 
-        if (this.strategy === null) {
-            throw new Error("Strategy cannot be null.");
-        }
-
         this.isApproved = this.strategy.calculate(this.votes);
 
         this.state = SessionState.Result;
     }
-    
+
     // -=-=-=-=-=-=-=-=-=- Register Vote -=-=-=-=-=-=-=-=-=-
 
     public registerVote(vote: IVote): void {
