@@ -7,7 +7,7 @@ export interface IVote {
 }
 
 export interface ICountingStrategy {
-    calculaate(votes: IVote[]): boolean;
+    calculate(votes: IVote[]): boolean;
 }
 
 export enum SessionState {
@@ -15,7 +15,7 @@ export enum SessionState {
     Opening = 'Opening',
     Voting = 'Voting',
     Closing = 'Closing',
-    Tallying = 'Counting',
+    Counting = 'Counting',
     Result = 'Result'
 }
 
@@ -36,7 +36,43 @@ export class VotingSession {
     }
 
     // -=-=-=-=-=-=-=-=-=- State Machine -=-=-=-=-=-=-=-=-=-
+    
+    public openSession(): void {
+        if (this.state !== SessionState.Setup) {
+            throw new Error("Session has already been opened once.");
+        }
+        this.state = SessionState.Opening;
+    }
 
+    public startVoting(): void {
+        if (this.state !== SessionState.Opening) {
+            throw new Error("Session can only start Voting right after Opening.");
+        }
+        this.state = SessionState.Voting;
+    }
+
+    public closeVoting(): void {
+        if (this.state !== SessionState.Voting) {
+            throw new Error("Session can only be closed right after Voting.")
+        }
+        this.state = SessionState.Closing;
+    }
+
+    public countVoting(): void {
+        if (this.state !== SessionState.Closing) {
+            throw new Error("Session can only start Counting right after being closed.");
+        }
+        this.state = SessionState.Counting;
+
+        if (this.strategy === null) {
+            throw new Error("Strategy cannot be null.");
+        }
+
+        this.isApproved = this.strategy.calculate(this.votes);
+
+        this.state = SessionState.Result;
+    }
+    
     // -=-=-=-=-=-=-=-=-=- Register Vote -=-=-=-=-=-=-=-=-=-
 
     public registerVote(vote: IVote): void {
