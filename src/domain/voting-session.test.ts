@@ -106,4 +106,20 @@ describe("VotingSession - State Machine and Mocking", () => {
         expect(session.getResult()).toBe(true);
     });
 
+    test("Should enforce null guards for constructor and registerVote", () => {
+        // @ts-expect-error Forcing error to ensure null guard works
+        expect(() => new VotingSession(null)).toThrow(
+            "Strategy cannot be null."
+        );
+
+        const session = new VotingSession({ calculate: () => true });
+        session.openSession();
+        session.startVoting();
+        
+        // @ts-expect-error Forcing error to ensure null guard works
+        expect(() => session.registerVote(null)).toThrow(
+            "Vote cannot be null."
+        );
+    });
+    
 });
