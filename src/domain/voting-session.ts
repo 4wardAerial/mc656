@@ -39,6 +39,10 @@ export class VotingSession {
         this.isApproved = null;
     }
 
+    public getState(): SessionState {
+        return this.state;
+    }
+
     // -=-=-=-=-=-=-=-=-=- State Machine -=-=-=-=-=-=-=-=-=-
     
     public openSession(): void {
@@ -62,7 +66,7 @@ export class VotingSession {
         this.state = SessionState.Closing;
     }
 
-    public countVoting(): void {
+    public countVotes(): void {
         if (this.state !== SessionState.Closing) {
             throw new Error("Session can only start Counting right after being closed.");
         }
