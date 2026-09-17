@@ -53,7 +53,7 @@ export class VotingSession {
 
     public getResult(): boolean {
         if (this.state !== SessionState.Result || this.isApproved === null) {
-            throw new Error("Result is not available yet.");
+            throw new Error("Result is only available after Counting is complete.");
         }
         return this.isApproved;
     }
