@@ -37,4 +37,22 @@ describe('Vote Classes', () => {
       expect(() => new ONUVote('', 'no')).toThrowError('voterId is required');
     });
   });
+
+  describe('CondominiumVote', () => {
+    it('should create a valid CondominiumVote', () => {
+      const vote = new CondominiumVote('voter3', 10, 'abstention');
+      expect(vote.voterId).toBe('voter3');
+      expect(vote.weight).toBe(10);
+      expect(vote.value).toBe('abstention');
+    });
+
+    it('should throw error if voterId is missing', () => {
+      expect(() => new CondominiumVote('', 10, 'yes')).toThrowError('voterId is required');
+    });
+
+    it('should throw error if weight is zero or negative', () => {
+      expect(() => new CondominiumVote('voter3', 0, 'yes')).toThrowError('weight must be greater than zero');
+      expect(() => new CondominiumVote('voter3', -5, 'yes')).toThrowError('weight must be greater than zero');
+    });
+  });
 });
