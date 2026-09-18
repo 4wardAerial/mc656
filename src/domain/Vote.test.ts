@@ -24,4 +24,17 @@ describe('Vote Classes', () => {
       expect(vote.voterId).toBe('voter1');
     });
   });
+
+  describe('ONUVote', () => {
+    it('should create a valid ONUVote', () => {
+      const vote = new ONUVote('voter2', 'yes', true);
+      expect(vote.voterId).toBe('voter2');
+      expect(vote.value).toBe('yes');
+      expect(vote.isPermanentMember).toBe(true);
+    });
+
+    it('should throw error if voterId is missing', () => {
+      expect(() => new ONUVote('', 'no')).toThrowError('voterId is required');
+    });
+  });
 });
