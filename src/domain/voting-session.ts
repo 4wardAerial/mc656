@@ -1,4 +1,4 @@
-import { type ICandidate, type IVote, type ICountingStrategy } from './Vote';
+import { type ICandidate, type IVote, type ICountingStrategy } from './vote';
 
 // -=-=-=-=-=-=-=-=-=- Voting Session Class -=-=-=-=-=-=-=-=-=-
 
@@ -14,7 +14,7 @@ export enum SessionState {
 
 export class VotingSession<
     TVote extends IVote = IVote,
-    TResult = boolean | ICandidate    
+    TResult = boolean | ICandidate
 > {
     private state: SessionState;
     private votes: TVote[];
@@ -37,7 +37,7 @@ export class VotingSession<
     }
 
     // -=-=-=-=-=-=-=-=-=- State Machine -=-=-=-=-=-=-=-=-=-
-    
+
     public openSession(): void {
         if (this.state !== SessionState.Setup) {
             throw new Error("Session has already been opened once.");

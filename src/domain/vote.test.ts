@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ConclaveVote, ONUVote, CondominiumVote, validateNoDuplicateVote, type IVote } from './Vote';
+import { ConclaveVote, ONUVote, CondominiumVote, validateNoDuplicateVote, type IVote } from './vote';
 
 describe('Vote Classes', () => {
   describe('ConclaveVote', () => {
@@ -15,13 +15,8 @@ describe('Vote Classes', () => {
 
     it('should guarantee immutability (readonly)', () => {
       const vote = new ConclaveVote('voter1', { candidateId: 'c1' });
-      // TypeScript compiler prevents reassignment due to readonly.
-      // But we can check that it's frozen or just attempt it in a ts-ignore if we want to test runtime (if we were using Object.freeze).
-      // Since it's only using TypeScript readonly modifier, runtime modification is technically possible unless frozen, but requirement states "using the readonly modifier in TypeScript".
-      // We will ensure TS complains if we try to mutate it. We'll use a type-level check in our mind, but for runtime testing, let's just make sure it was instantiated correctly.
-      // The requirement says "attempts to alter fields after creation must fail", if we only use readonly, it won't fail at runtime in pure JS unless we freeze it, but Vitest executes the TS file.
-      // We can test this by trying to assign and catching error if we froze it, but we didn't freeze it. Let's just assert the value.
-      expect(vote.voterId).toBe('voter1');
+      // @ts-expect-error Forcing error to ensure readonly modifier works
+      vote.voterId = 'voter2';
     });
   });
 
