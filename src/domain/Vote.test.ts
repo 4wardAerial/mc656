@@ -55,4 +55,23 @@ describe('Vote Classes', () => {
       expect(() => new CondominiumVote('voter3', -5, 'yes')).toThrowError('weight must be greater than zero');
     });
   });
+
+  describe('validateNoDuplicateVote', () => {
+    it('should not throw error if voterId does not exist in the list', () => {
+      const votes: IVote[] = [
+        new ConclaveVote('voter1', { candidateId: 'c1' }),
+        new ONUVote('voter2', 'no')
+      ];
+      expect(() => validateNoDuplicateVote(votes, 'voter3')).not.toThrow();
+    });
+
+    it('should throw error if duplicate vote is detected', () => {
+      const votes: IVote[] = [
+        new ConclaveVote('voter1', { candidateId: 'c1' }),
+        new CondominiumVote('voter2', 5, 'yes'),
+        new ONUVote('voter1', 'no') // Simulated duplicated ID
+      ];
+      expect(() => validateNoDuplicateVote(votes, 'voter1')).toThrowError('Duplicate vote for voterId: voter1');
+    });
+  });
 });
