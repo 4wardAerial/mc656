@@ -71,7 +71,7 @@ describe('Vote Classes', () => {
         new CondominiumVote('voter2', 5, 'yes'),
         new ONUVote('voter1', 'no') // Simulated duplicated ID
       ];
-      expect(() => validateNoDuplicateVote(votes, 'voter1')).toThrowError('Duplicate vote for voterId: voter1');
+      expect(() => validateNoDuplicateVote(votes, 'voter1')).toThrow('Duplicate vote for voterId: voter1');
     });
   });
 });
