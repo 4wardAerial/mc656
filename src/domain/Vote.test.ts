@@ -10,7 +10,7 @@ describe('Vote Classes', () => {
     });
 
     it('should throw error if voterId is missing', () => {
-      expect(() => new ConclaveVote('', { candidateId: 'c1' })).toThrowError('voterId is required');
+      expect(() => new ConclaveVote('', { candidateId: 'c1' })).toThrow('voterId is required');
     });
 
     it('should guarantee immutability (readonly)', () => {
@@ -34,7 +34,7 @@ describe('Vote Classes', () => {
     });
 
     it('should throw error if voterId is missing', () => {
-      expect(() => new ONUVote('', 'no')).toThrowError('voterId is required');
+      expect(() => new ONUVote('', 'no')).toThrow('voterId is required');
     });
   });
 
@@ -47,12 +47,12 @@ describe('Vote Classes', () => {
     });
 
     it('should throw error if voterId is missing', () => {
-      expect(() => new CondominiumVote('', 10, 'yes')).toThrowError('voterId is required');
+      expect(() => new CondominiumVote('', 10, 'yes')).toThrow('voterId is required');
     });
 
     it('should throw error if weight is zero or negative', () => {
-      expect(() => new CondominiumVote('voter3', 0, 'yes')).toThrowError('weight must be greater than zero');
-      expect(() => new CondominiumVote('voter3', -5, 'yes')).toThrowError('weight must be greater than zero');
+      expect(() => new CondominiumVote('voter3', 0, 'yes')).toThrow('weight must be greater than zero');
+      expect(() => new CondominiumVote('voter3', -5, 'yes')).toThrow('weight must be greater than zero');
     });
   });
 
