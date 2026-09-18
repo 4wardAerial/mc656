@@ -69,7 +69,7 @@ describe('Vote Classes', () => {
       const votes: IVote[] = [
         new ConclaveVote('voter1', { candidateId: 'c1' }),
         new CondominiumVote('voter2', 5, 'yes'),
-        new ONUVote('voter1', 'no') // Simulated duplicated ID
+        new ONUVote('voter3', 'no')
       ];
       expect(() => validateNoDuplicateVote(votes, 'voter1')).toThrow('Duplicate vote for voterId: voter1');
     });
