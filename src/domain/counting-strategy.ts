@@ -130,7 +130,6 @@ export class ConclaveCountingStrategy implements ICountingStrategy<ConclaveVote>
     }
 
     calculate(votes: ConclaveVote[]): boolean | ICandidate {
-        this.currentCall++;
         const voteCount = new Map<string, number>();
         const idToObject = new Map<string, ICandidate>();
         let allVotes = 0;
@@ -138,6 +137,8 @@ export class ConclaveCountingStrategy implements ICountingStrategy<ConclaveVote>
         if (votes.length == 0) {
             throw new Error("Number of Votes must not be 0")
         }
+
+        this.currentCall++;
 
         for (const vote of votes) {
             allVotes++;
