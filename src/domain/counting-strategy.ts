@@ -141,7 +141,7 @@ export class ConclaveCountingStrategy implements ICountingStrategy<ConclaveVote>
 
         for (const vote of votes) {
             allVotes++;
-            if (this.currentCall > 4 && !this.twoMostVoted.includes(vote.value.candidateId)) {
+            if (this.currentCall > 2 && !this.twoMostVoted.includes(vote.value.candidateId)) {
                 //Tolerance of 4 votings before the restriction of the candidates
                 throw new Error("Voted canditate is not one of the two most voted of the last call");
 
