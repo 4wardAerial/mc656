@@ -8,4 +8,8 @@ export class CondominiumAdministrator extends Administrator {
         this.registerVoter(voter);
         this.voterWeights.set(voter.id, idealFraction);
     }
+
+    getVoteWeight(voterId: string): number | undefined {
+        return this.voterWeights.get(voterId);
+    }
 }
