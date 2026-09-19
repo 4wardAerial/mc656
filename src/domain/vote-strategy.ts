@@ -55,3 +55,29 @@ export class CondominiumVote implements IVote {
 
 // -=-=-=-=-=-=-=-=-=- Specific Vote Classes -=-=-=-=-=-=-=-=-=-
 
+export class ONUContingStrategy implements ICountingStrategy<ONUVote> {
+
+    calculate(votes: ONUVote[]): boolean | ICandidate {
+        
+        let numberVoters = votes.length
+        
+        if (numberVoters < 0) {
+            throw new Error(`Expected a greater than zero number, got ${numberVoters}`);
+        }
+
+        let yesCount = 0;
+
+        for (const vote of votes) {
+            if (vote.isPermanentMember && vote.value === 'no') {
+                return false; 
+            } else if (vote.value == 'yes') {
+                yesCount += 1
+            }
+        }
+
+        if (yesCount < 9 || yesCount <= numberVoters / 2) {
+            return false
+        } 
+        return true
+    }
+}
