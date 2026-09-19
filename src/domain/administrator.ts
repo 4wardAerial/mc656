@@ -3,6 +3,7 @@ import { Voter } from './voter.js';
 export class Administrator {
     readonly id: string;
     private readonly registeredVoters: Map<string, Voter> = new Map();
+    private votingOpen = false;
 
     constructor(id: string) {
         if (!id || id.trim().length === 0) {
@@ -21,5 +22,23 @@ export class Administrator {
 
     listRegisteredVoters(): Voter[] {
         return Array.from(this.registeredVoters.values());
+    }
+
+    authorizeVotingOpening(): void {
+        if (this.votingOpen) {
+            throw new Error('Voting is already open.');
+        }
+        this.votingOpen = true;
+    }
+
+    authorizeVotingClosing(): void {
+        if (!this.votingOpen) {
+            throw new Error('There is no open voting to close.');
+        }
+        this.votingOpen = false;
+    }
+
+    isVotingOpen(): boolean {
+        return this.votingOpen;
     }
 }
