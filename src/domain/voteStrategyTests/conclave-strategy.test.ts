@@ -393,6 +393,7 @@ describe("ConclaveCountingStrategy", () => {
                 new ConclaveVote("v6", candidateA),
                 new ConclaveVote("v7", candidateB),
                 new ConclaveVote("v8", candidateA),
+                new ConclaveVote("v9", candidateB)
             ];
 
             expect(strategy.calculate(secondVoting)).toBe(false);
@@ -427,6 +428,7 @@ describe("ConclaveCountingStrategy", () => {
                 new ConclaveVote("v6", candidateA),
                 new ConclaveVote("v7", candidateB),
                 new ConclaveVote("v8", candidateA),
+                new ConclaveVote("v9", candidateB)
             ];
 
             expect(strategy.calculate(secondVoting)).toBe(false);
