@@ -25,4 +25,28 @@ describe('Administrator', () => {
         admin.registerVoter(voter);
         expect(() => admin.registerVoter(voter)).toThrow();
     });
+
+    it('opens voting', () => {
+        const admin = new Administrator('1');
+        admin.authorizeVotingOpening();
+        expect(admin.isVotingOpen()).toBe(true);
+    });
+
+    it('throws an error when trying to open voting that is already open', () => {
+        const admin = new Administrator('1');
+        admin.authorizeVotingOpening();
+        expect(() => admin.authorizeVotingOpening()).toThrow();
+    });
+
+    it('closes voting', () => {
+        const admin = new Administrator('1');
+        admin.authorizeVotingOpening();
+        admin.authorizeVotingClosing();
+        expect(admin.isVotingOpen()).toBe(false);
+    });
+
+    it('throws an error when trying to close voting that is not open', () => {
+        const admin = new Administrator('1');
+        expect(() => admin.authorizeVotingClosing()).toThrow();
+    });
 });
