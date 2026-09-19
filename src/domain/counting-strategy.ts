@@ -59,7 +59,7 @@ export class ONUCountingStrategy implements ICountingStrategy<ONUVote> {
 
     calculate(votes: ONUVote[]): boolean | ICandidate {
         
-        let numberVoters = votes.length
+        const numberVoters = votes.length
 
         let yesCount = 0;
 
