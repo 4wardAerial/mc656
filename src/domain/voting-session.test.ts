@@ -2,12 +2,14 @@ import { expect, test, describe } from "vitest";
 import {
     VotingSession,
     SessionState,
+} from "./voting-session"
+import {
     ConclaveVote,
     ONUVote,
     type ICandidate,
     type IVote,
     type ICountingStrategy,
-} from "./voting-session"
+} from "./vote"
 
 describe("VotingSession - State Machine and Mocking", () => {
 
@@ -24,10 +26,10 @@ describe("VotingSession - State Machine and Mocking", () => {
 
         session.startVoting();
         expect(session.getState()).toBe(SessionState.Voting);
-        
+
         session.closeVoting();
         expect(session.getState()).toBe(SessionState.Closing);
-        
+
         session.countVotes();
         expect(session.getState()).toBe(SessionState.Result);
 
@@ -78,7 +80,7 @@ describe("VotingSession - State Machine and Mocking", () => {
         const mockStrategy: ICountingStrategy<ONUVote, boolean> = {
             calculate: (votes) => votes.length > 0
         };
-        
+
         const session = new VotingSession(mockStrategy);
 
         const mockVote: ONUVote = {
@@ -116,11 +118,11 @@ describe("VotingSession - State Machine and Mocking", () => {
         const session = new VotingSession({ calculate: () => true });
         session.openSession();
         session.startVoting();
-        
+
         // @ts-expect-error Forcing error to ensure null guard works
         expect(() => session.registerVote(null)).toThrow(
             "Vote cannot be null."
         );
     });
-    
+
 });
