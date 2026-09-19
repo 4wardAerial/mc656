@@ -53,17 +53,13 @@ export class CondominiumVote implements IVote {
 }
 
 
-// -=-=-=-=-=-=-=-=-=- Specific Vote Classes -=-=-=-=-=-=-=-=-=-
+// -=-=-=-=-=-=-=-=-=- Specific Classes -=-=-=-=-=-=-=-=-=-
 
-export class ONUContingStrategy implements ICountingStrategy<ONUVote> {
+export class ONUCountingStrategy implements ICountingStrategy<ONUVote> {
 
     calculate(votes: ONUVote[]): boolean | ICandidate {
         
         let numberVoters = votes.length
-        
-        if (numberVoters < 0) {
-            throw new Error(`Expected a greater than zero number, got ${numberVoters}`);
-        }
 
         let yesCount = 0;
 
@@ -71,7 +67,7 @@ export class ONUContingStrategy implements ICountingStrategy<ONUVote> {
             if (vote.isPermanentMember && vote.value === 'no') {
                 return false; 
             } else if (vote.value == 'yes') {
-                yesCount += 1
+                yesCount++;
             }
         }
 
@@ -79,5 +75,38 @@ export class ONUContingStrategy implements ICountingStrategy<ONUVote> {
             return false
         } 
         return true
+    }
+}
+
+export class CondominiumCountingStrategy implements ICountingStrategy<CondominiumVote> {
+
+    private firstCall : boolean;
+
+    constructor() {
+        this.firstCall = true;
+    }
+
+    calculate(votes: CondominiumVote[]): boolean | ICandidate {
+        //We have the assumption that weights of the condominium votes is in the interval (0,1)
+
+        let totalWeightAll = 0;
+        let yesWeightAll = 0;
+        
+        for (const vote of votes) {
+            if (vote.value == 'yes') {
+                yesWeightAll += vote.weight;
+            }
+
+            totalWeightAll += vote.weight;
+        }
+
+        if (this.firstCall) {
+            this.firstCall = false;
+
+            return yesWeightAll > 0.5;
+
+        } else {
+            return yesWeightAll > totalWeightAll / 2;
+        }
     }
 }
