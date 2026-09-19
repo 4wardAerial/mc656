@@ -235,7 +235,7 @@ describe("ConclaveCountingStrategy", () => {
             ];
 
             expect(() => strategy.calculate(thirdVoting)).toThrow(
-                "Voted canditate is not one of the two most voted of the last call"
+                "Voted candidate is not one of the two most voted of the last call"
             );
         });
 
@@ -311,7 +311,7 @@ describe("ConclaveCountingStrategy", () => {
             ];
 
             expect(() => strategy.calculate(thirdVoting)).toThrow(
-                "Voted canditate is not one of the two most voted of the last call"
+                "Voted candidate is not one of the two most voted of the last call"
             );
 
 
@@ -406,7 +406,7 @@ describe("ConclaveCountingStrategy", () => {
             ];
 
             expect(() => strategy.calculate(thirdVoting)).toThrow(
-                "Voted canditate is not one of the two most voted of the last call"
+                "Voted candidate is not one of the two most voted of the last call"
             );
         });
 
@@ -442,7 +442,7 @@ describe("ConclaveCountingStrategy", () => {
             ];
 
             expect(() => strategy.calculate(thirdVoting)).toThrow(
-                "Voted canditate is not one of the two most voted of the last call"
+                "Voted candidate is not one of the two most voted of the last call"
             );
         });
 

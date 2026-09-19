@@ -55,22 +55,22 @@ export class CondominiumVote implements IVote {
 
 // -=-=-=-=-=-=-=-=-=- Specific Classes -=-=-=-=-=-=-=-=-=-
 
-export class ONUCountingStrategy implements ICountingStrategy<ONUVote> {
+export class ONUCountingStrategy implements ICountingStrategy<ONUVote, boolean> {
 
-    calculate(votes: ONUVote[]): boolean | ICandidate {
+    calculate(votes: ONUVote[]): boolean {
         
         const numberVoters = votes.length
 
         let yesCount = 0;
 
-        if (votes.length == 0) {
+        if (votes.length === 0) {
             throw new Error("Number of Votes must not be 0")
         }
 
         for (const vote of votes) {
             if (vote.isPermanentMember && vote.value === 'no') {
                 return false; 
-            } else if (vote.value == 'yes') {
+            } else if (vote.value === 'yes') {
                 yesCount++;
             }
         }
@@ -82,7 +82,7 @@ export class ONUCountingStrategy implements ICountingStrategy<ONUVote> {
     }
 }
 
-export class CondominiumCountingStrategy implements ICountingStrategy<CondominiumVote> {
+export class CondominiumCountingStrategy implements ICountingStrategy<CondominiumVote, boolean> {
 
     private firstCall : boolean;
 
@@ -90,18 +90,18 @@ export class CondominiumCountingStrategy implements ICountingStrategy<Condominiu
         this.firstCall = true;
     }
 
-    calculate(votes: CondominiumVote[]): boolean | ICandidate {
+    calculate(votes: CondominiumVote[]): boolean {
         //We have the assumption that weights of the condominium votes is in the interval (0,1)
 
         let totalWeightAll = 0;
         let yesWeightAll = 0;
 
-        if (votes.length == 0) {
+        if (votes.length === 0) {
             throw new Error("Number of Votes must not be 0")
         }
         
         for (const vote of votes) {
-            if (vote.value == 'yes') {
+            if (vote.value === 'yes') {
                 yesWeightAll += vote.weight;
             }
 
@@ -144,7 +144,7 @@ export class ConclaveCountingStrategy implements ICountingStrategy<ConclaveVote>
             allVotes++;
             if (this.currentCall >= 3 && !this.twoMostVoted.includes(vote.value.candidateId)) {
                 //Tolerance of 4 votings before the restriction of the candidates
-                throw new Error("Voted canditate is not one of the two most voted of the last call");
+                throw new Error("Voted candidate is not one of the two most voted of the last call");
 
             } else {
                 const numberOfVotes = voteCount.get(vote.value.candidateId) ?? 0;
