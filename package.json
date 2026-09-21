@@ -1,0 +1,31 @@
+{
+  "name": "mc656",
+  "version": "1.0.0",
+  "description": "Repository for the MC656 - Software Engineering course, taught at UNICAMP",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/4wardAerial/mc656.git"
+  },
+  "keywords": [],
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/4wardAerial/mc656/issues"
+  },
+  "homepage": "https://github.com/4wardAerial/mc656#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^10.10.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.0"
+  }
+}

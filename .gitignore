@@ -3,3 +3,11 @@
 
 # Native MacOS files
 *.DS_Store
+
+# Node Modules
+node_modules/
+bin/
+
+# Coverage
+coverage/
+*.lcov
