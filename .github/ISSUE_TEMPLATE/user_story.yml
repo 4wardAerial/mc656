@@ -1,0 +1,65 @@
+name: User Story
+description: Create a new user story tied to an Epic for the voting system.
+title: "Story: [Short Title]"
+labels: ["Atividade3", "story"]
+body:
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: Use the standard Agile format.
+      value: |
+        **As a** [user type or role],
+        **I want** [feature or need],
+        **so that** [value, goal, or benefit].
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & Motivation
+      description: Briefly explain why this is important to the project or any background information.
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Verifiable conditions that must be met for this story to be considered Done. Use checkboxes.
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: non-functional
+    attributes:
+      label: Non-Functional Requirements
+      description: Identify any specific constraints related to performance, security, usability, etc. (If applicable)
+      value: |
+        - [ ] 
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical-tasks
+    attributes:
+      label: Technical Tasks
+      description: Developer checklist for implementation.
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: false
+
+  - type: input
+    id: related-epic
+    attributes:
+      label: Related Epic
+      description: "Mandatory for traceability: Reference the Epic issue number (e.g., #12)."
+      placeholder: "#"
+    validations:
+      required: true

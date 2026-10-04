@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: 📊 Project Kanban Board
+    url: https://github.com/4wardAerial/mc656/projects
+    about: View the current sprint, backlog, and issue priorities.
+  - name: 📖 Assignment Instructions (PDF)
+    url: https://github.com/4wardAerial/mc656 # Update this link if you have the PDF hosted somewhere
+    about: Review the Atividade 3 requirements before creating your issues.
