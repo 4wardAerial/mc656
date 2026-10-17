@@ -1,10 +1,7 @@
 import { expect, test, describe } from "vitest";
 
-import {
-    ONUVote,
-    ONUCountingStrategy,
-} from "../counting-strategy"
-
+import { ONUCountingStrategy } from "../counting-strategy"
+import { ONUVote } from "../vote"
 
 // Testing ONU Counting Strategy
 describe("ONUCountingStrategy", () => {

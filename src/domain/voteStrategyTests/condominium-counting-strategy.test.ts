@@ -1,11 +1,7 @@
-
 import { expect, test, describe } from "vitest";
 
-import {
-    CondominiumVote,
-    CondominiumCountingStrategy
-} from "../counting-strategy";
-
+import { CondominiumCountingStrategy } from "../counting-strategy";
+import { CondominiumVote } from "../vote";
 
 describe("CondominiumCountingStrategy", () => {
 

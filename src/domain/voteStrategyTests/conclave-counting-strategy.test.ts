@@ -1,11 +1,7 @@
 import { expect, test, describe } from "vitest";
 
-import {
-    type ICandidate,
-    ConclaveVote,
-    ConclaveCountingStrategy
-} from "../counting-strategy";
-
+import { ConclaveCountingStrategy } from "../counting-strategy";
+import { ConclaveVote, type ICandidate } from "../vote";
 
 describe("ConclaveCountingStrategy", () => {
 
