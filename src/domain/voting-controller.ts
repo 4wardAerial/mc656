@@ -3,7 +3,8 @@ import { CondominiumAdministrator } from './condominium-administrator.js';
 import { OnuAdministrator } from './onu-administrator.js';
 import { VotingSession, SessionState } from './voting-session.js';
 import { 
-    type IVote, 
+    type IVote,
+    type ICandidate,
     ConclaveVote, 
     ONUVote, 
     CondominiumVote, 
@@ -52,7 +53,7 @@ export class VotingController<TVote extends IVote, TResult> {
 
     // -=-=-=-=-=-=-=-=-=- Core Logic -=-=-=-=-=-=-=-=-=-
 
-    public castVote(voterId: string, value: any): void {
+    public castVote(voterId: string, value: 'yes' | 'no' | 'abstention' | ICandidate): void {
         // 1. Verify the voter is registered with the Administrator
         const isRegistered = this.admin.listRegisteredVoters().some(voter => voter.id === voterId);
         if (!isRegistered) {
@@ -70,15 +71,14 @@ export class VotingController<TVote extends IVote, TResult> {
             if (weight === undefined) {
                 throw new Error(`Weight not found for Condominium voter ${voterId}`);
             }
-            vote = new CondominiumVote(voterId, weight, value) as unknown as TVote;
+            vote = new CondominiumVote(voterId, weight, value as 'yes' | 'no' | 'abstention') as unknown as TVote;
             
         } else if (this.admin instanceof OnuAdministrator) {
             const isPermanent = this.admin.isPermanentMember(voterId);
-            vote = new ONUVote(voterId, value, isPermanent) as unknown as TVote;
+            vote = new ONUVote(voterId, value as 'yes' | 'no' | 'abstention', isPermanent) as unknown as TVote;
 
         } else {
-            // Default fallback for Conclave or generic votes
-            vote = new ConclaveVote(voterId, value) as unknown as TVote;
+            vote = new ConclaveVote(voterId, value as ICandidate) as unknown as TVote;
         }
 
         // 4. Delegate to the voting session and record it locally
