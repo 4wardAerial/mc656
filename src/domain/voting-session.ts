@@ -79,3 +79,121 @@ export abstract class VotingSession<
         return this.result;
     }
 }
+
+export class CondominiumVotingSession extends VotingSession<CondominiumVote, boolean> {
+    private topic: string;
+    private firstCall: boolean;
+
+    constructor(topic: string = '', sessionId: string = '') {
+        super(SessionType.CONDOMINIUM, sessionId);
+        this.topic = '';
+        this.firstCall = true;
+        this.setTopic(topic);
+    }
+
+    public setTopic(topic: string): void {
+        this.state = SessionState.SETUP;
+
+        this.votes = [];
+        this.topic = topic;
+
+        this.state = SessionState.VOTING;
+    }
+
+    public getTopic(): string {
+        return this.topic;
+    }
+
+    public override countVotes(): void {
+        if (this.state !== SessionState.VOTING) {
+            throw new Error("Session can only start Counting right after Voting.");
+        }
+        this.state = SessionState.COUNTING;
+
+        if (this.votes.length === 0) {
+            this.state = SessionState.VOTING;
+            throw new Error("Number of Votes must not be 0");
+        }
+
+        let totalWeightAll = 0;
+        let yesWeightAll = 0;
+
+        for (const vote of this.votes) {
+            if (vote.value === 'yes') {
+                yesWeightAll += vote.weight;
+            }
+            totalWeightAll += vote.weight;
+        }
+
+        if (this.firstCall) {
+            this.firstCall = false;
+            this.result = yesWeightAll > 0.5;
+            if (this.result) {
+                this.state = SessionState.RESULT;
+            } else {
+                this.setTopic(this.topic);
+            }
+        } else {
+            this.result = yesWeightAll > totalWeightAll / 2;
+            this.state = SessionState.RESULT;
+        }
+    }
+}
+
+export { CondominiumVotingSession as CondominiumVoteSession };
+
+export class ONUVotingSession extends VotingSession<ONUVote, boolean> {
+    private topic: string;
+
+    constructor(topic: string = '', sessionId: string = '') {
+        super(SessionType.ONU, sessionId);
+        this.topic = '';
+        this.setTopic(topic);
+    }
+
+    public setTopic(topic: string): void {
+        this.state = SessionState.SETUP;
+
+        this.votes = [];
+        this.topic = topic;
+
+        this.state = SessionState.VOTING;
+    }
+
+    public getTopic(): string {
+        return this.topic;
+    }
+
+    public override countVotes(): void {
+        if (this.state !== SessionState.VOTING) {
+            throw new Error("Session can only start Counting right after Voting.");
+        }
+        this.state = SessionState.COUNTING;
+
+        if (this.votes.length === 0) {
+            this.state = SessionState.VOTING;
+            throw new Error("Number of Votes must not be 0");
+        }
+
+        const numberVoters = this.votes.length;
+        let yesCount = 0;
+
+        for (const vote of this.votes) {
+            if (vote.isPermanentMember && vote.value === 'no') {
+                this.result = false;
+                this.state = SessionState.RESULT;
+                return;
+            } else if (vote.value === 'yes') {
+                yesCount++;
+            }
+        }
+
+        if (yesCount < 9 || yesCount <= numberVoters / 2) {
+            this.result = false;
+        } else {
+            this.result = true;
+        }
+
+        this.state = SessionState.RESULT;
+    }
+}
