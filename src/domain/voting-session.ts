@@ -1,34 +1,43 @@
-import { type ICandidate, type IVote, type ICountingStrategy } from './vote';
+import {
+    type IVote,
+    ConclaveVote,
+    ONUVote,
+    CondominiumVote,
+    validateNoDuplicateVote
+} from './vote.js';
 
-// -=-=-=-=-=-=-=-=-=- Voting Session Class -=-=-=-=-=-=-=-=-=-
+// -=-=-=-=-=-=-=-=-=- Enums -=-=-=-=-=-=-=-=-=-
 
-// Possible states
 export enum SessionState {
-    Setup = 'Setup',
-    Opening = 'Opening',
-    Voting = 'Voting',
-    Closing = 'Closing',
-    Counting = 'Counting',
-    Result = 'Result'
+    SETUP = 'SETUP',
+    VOTING = 'VOTING',
+    COUNTING = 'COUNTING',
+    RESULT = 'RESULT'
 }
 
-export class VotingSession<
+export enum SessionType {
+    CONCLAVE = 'CONCLAVE',
+    CONDOMINIUM = 'CONDOMINIUM',
+    ONU = 'ONU'
+}
+
+// -=-=-=-=-=-=-=-=-=- Abstract Voting Session Class -=-=-=-=-=-=-=-=-=-
+
+export abstract class VotingSession<
     TVote extends IVote = IVote,
-    TResult = boolean | ICandidate
+    TResult = boolean | string
 > {
-    private state: SessionState;
-    private votes: TVote[];
-    private strategy: ICountingStrategy<TVote, TResult>;
-    private result: TResult | null;
+    protected readonly sessionType: SessionType;
+    protected readonly sessionId: string;
+    protected state: SessionState;
+    protected votes: TVote[];
+    protected result: TResult | null;
 
-    constructor(strategy: ICountingStrategy<TVote, TResult>) {
-        if (strategy === null) {
-            throw new Error("Strategy cannot be null.");
-        }
-
-        this.state = SessionState.Setup;
+    constructor(sessionType: SessionType, sessionId: string = '') {
+        this.sessionType = sessionType;
+        this.sessionId = sessionId;
+        this.state = SessionState.SETUP;
         this.votes = [];
-        this.strategy = strategy;
         this.result = null;
     }
 
@@ -36,56 +45,35 @@ export class VotingSession<
         return this.state;
     }
 
-    // -=-=-=-=-=-=-=-=-=- State Machine -=-=-=-=-=-=-=-=-=-
-
-    public openSession(): void {
-        if (this.state !== SessionState.Setup) {
-            throw new Error("Session has already been opened once.");
-        }
-        this.state = SessionState.Opening;
+    public getSessionType(): SessionType {
+        return this.sessionType;
     }
 
-    public startVoting(): void {
-        if (this.state !== SessionState.Opening) {
-            throw new Error("Session can only start Voting right after Opening.");
-        }
-        this.state = SessionState.Voting;
+    public getSessionId(): string {
+        return this.sessionId;
     }
 
-    public closeVoting(): void {
-        if (this.state !== SessionState.Voting) {
-            throw new Error("Session can only be closed right after Voting.")
-        }
-        this.state = SessionState.Closing;
-    }
+    // -=-=-=-=-=-=-=-=-=- Core Session Operations -=-=-=-=-=-=-=-=-=-
 
-    public countVotes(): void {
-        if (this.state !== SessionState.Closing) {
-            throw new Error("Session can only start Counting right after being closed.");
-        }
-        this.state = SessionState.Counting;
-
-        this.result = this.strategy.calculate(this.votes);
-
-        this.state = SessionState.Result;
-    }
-
-    // -=-=-=-=-=-=-=-=-=- Register Vote -=-=-=-=-=-=-=-=-=-
+    public abstract countVotes(): void;
 
     public registerVote(vote: TVote): void {
-        if (vote === null) {
+        if (vote === null || vote === undefined) {
             throw new Error("Vote cannot be null.");
         }
-        if (this.state !== SessionState.Voting) {
+        if (this.state !== SessionState.VOTING) {
             throw new Error("Votes can only be registered during Voting state.");
         }
+        this.validateNoDuplicateVote(vote);
         this.votes.push(vote);
     }
 
-    // -=-=-=-=-=-=-=-=-=- Voting Result -=-=-=-=-=-=-=-=-=-
+    protected validateNoDuplicateVote(vote: TVote): void {
+        validateNoDuplicateVote(this.votes, vote.voterId);
+    }
 
     public getResult(): TResult {
-        if (this.state !== SessionState.Result || this.result === null) {
+        if (this.result === null) {
             throw new Error("Result is only available after Counting is complete.");
         }
         return this.result;
