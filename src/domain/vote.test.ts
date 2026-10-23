@@ -1,20 +1,37 @@
 import { describe, it, expect } from 'vitest';
-import { ConclaveVote, ONUVote, CondominiumVote, validateNoDuplicateVote, type IVote } from './vote';
+import { ConclaveVote, ONUVote, CondominiumVote, validateNoDuplicateVote, type IVote } from './vote.js';
 
 describe('Vote Classes', () => {
   describe('ConclaveVote', () => {
-    it('should create a valid ConclaveVote', () => {
+    it('should create a valid ConclaveVote with string candidateName', () => {
+      const vote = new ConclaveVote('voter1', 'Candidate 1');
+      expect(vote.voterId).toBe('voter1');
+      expect(vote.candidateName).toBe('Candidate 1');
+      expect(vote.value).toBe('Candidate 1');
+    });
+
+    it('should create a valid ConclaveVote with ICandidate object', () => {
       const vote = new ConclaveVote('voter1', { candidateId: 'c1', name: 'Candidate 1' });
       expect(vote.voterId).toBe('voter1');
-      expect(vote.value.candidateId).toBe('c1');
+      expect(vote.candidateName).toBe('Candidate 1');
+    });
+
+    it('should fallback to candidateId when ICandidate name is omitted', () => {
+      const vote = new ConclaveVote('voter1', { candidateId: 'c1' });
+      expect(vote.voterId).toBe('voter1');
+      expect(vote.candidateName).toBe('c1');
     });
 
     it('should throw error if voterId is missing', () => {
-      expect(() => new ConclaveVote('', { candidateId: 'c1' })).toThrow('voterId is required');
+      expect(() => new ConclaveVote('', 'Candidate 1')).toThrow('voterId is required');
+    });
+
+    it('should throw error if candidateName is empty', () => {
+      expect(() => new ConclaveVote('voter1', '')).toThrow('candidateName is required');
     });
 
     it('should guarantee immutability (readonly)', () => {
-      const vote = new ConclaveVote('voter1', { candidateId: 'c1' });
+      const vote = new ConclaveVote('voter1', 'Candidate 1');
       // @ts-expect-error Forcing error to ensure readonly modifier works
       vote.voterId = 'voter2';
     });
@@ -54,7 +71,7 @@ describe('Vote Classes', () => {
   describe('validateNoDuplicateVote', () => {
     it('should not throw error if voterId does not exist in the list', () => {
       const votes: IVote[] = [
-        new ConclaveVote('voter1', { candidateId: 'c1' }),
+        new ConclaveVote('voter1', 'c1'),
         new ONUVote('voter2', 'no')
       ];
       expect(() => validateNoDuplicateVote(votes, 'voter3')).not.toThrow();
@@ -62,7 +79,7 @@ describe('Vote Classes', () => {
 
     it('should throw error if duplicate vote is detected', () => {
       const votes: IVote[] = [
-        new ConclaveVote('voter1', { candidateId: 'c1' }),
+        new ConclaveVote('voter1', 'c1'),
         new CondominiumVote('voter2', 5, 'yes'),
         new ONUVote('voter3', 'no')
       ];
