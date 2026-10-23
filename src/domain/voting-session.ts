@@ -80,6 +80,93 @@ export abstract class VotingSession<
     }
 }
 
+// -=-=-=-=-=-=-=-=-=- Concrete Voting Session Classes -=-=-=-=-=-=-=-=-=-
+
+export class ConclaveVotingSession extends VotingSession<ConclaveVote, string> {
+    private candidates: string[];
+    private currentCall: number;
+
+    constructor(candidates: string[] = [], sessionId: string = '') {
+        super(SessionType.CONCLAVE, sessionId);
+        this.candidates = [];
+        this.currentCall = 0;
+        this.setCandidates(candidates);
+    }
+
+    public setCandidates(candidates: string[]): void {
+        this.state = SessionState.SETUP;
+
+        this.votes = [];
+        this.candidates = candidates;
+
+        this.state = SessionState.VOTING;
+    }
+
+    public getCandidates(): string[] {
+        return [...this.candidates];
+    }
+
+    public getCurrentCall(): number {
+        return this.currentCall;
+    }
+
+    public override countVotes(): void {
+        if (this.state !== SessionState.VOTING) {
+            throw new Error("Session can only start Counting right after Voting.");
+        }
+        this.state = SessionState.COUNTING;
+
+        if (this.votes.length === 0) {
+            this.state = SessionState.VOTING;
+            throw new Error("Number of Votes must not be 0");
+        }
+
+        const voteCount = new Map<string, number>();
+        const allVotes = this.votes.length;
+
+        for (const vote of this.votes) {
+            if (this.candidates.length > 0 && !this.candidates.includes(vote.candidateName)) {
+                this.votes = [];
+                this.state = SessionState.VOTING;
+                throw new Error("Voted candidate is not one of the two most voted of the last call");
+            }
+            const numberOfVotes = voteCount.get(vote.candidateName) ?? 0;
+            voteCount.set(vote.candidateName, numberOfVotes + 1);
+        }
+
+        const orderedCandidates = Array.from(voteCount.entries()).sort((a, b) => {
+            if (b[1] !== a[1]) {
+                return b[1] - a[1];
+            }
+            return a[0].localeCompare(b[0]);
+        });
+
+        const mostVotedCandidate = orderedCandidates[0]![0];
+        const mostVotedCandidateVotes = orderedCandidates[0]![1];
+
+        if (this.currentCall < 3) {
+            if (mostVotedCandidateVotes / allVotes >= 2 / 3) {
+                this.result = mostVotedCandidate;
+                this.state = SessionState.RESULT;
+                return;
+            }
+
+            this.currentCall++;
+
+            if (this.currentCall < 3) {
+                this.setCandidates(this.candidates);
+            } else {
+                const twoMostVoted = [orderedCandidates[0]![0], orderedCandidates[1]![0]];
+                this.setCandidates(twoMostVoted);
+            }
+        } else {
+            // After 3 tries: criteria is voteCount > 50% and, in case of tie, alphabetical order
+            this.result = mostVotedCandidate;
+            this.state = SessionState.RESULT;
+        }
+    }
+}
+
 export class CondominiumVotingSession extends VotingSession<CondominiumVote, boolean> {
     private topic: string;
     private firstCall: boolean;
