@@ -8,19 +8,26 @@ export interface IVote {
   readonly weight?: number;
 }
 
-export interface ICountingStrategy<TVote extends IVote = IVote, TResult = boolean | ICandidate> {
-  calculate(votes: TVote[]): TResult;
-}
-
 // -=-=-=-=-=-=-=-=-=- Specific Vote Classes -=-=-=-=-=-=-=-=-=-
 export class ConclaveVote implements IVote {
+  public readonly candidateName: string;
+  public readonly value: string;
+
   constructor(
     public readonly voterId: string,
-    public readonly value: ICandidate
+    candidate: string | ICandidate
   ) {
     if (!voterId) {
       throw new Error("voterId is required");
     }
+    const resolvedName = typeof candidate === "string"
+      ? candidate
+      : (candidate?.name ?? candidate?.candidateId ?? "");
+    if (!resolvedName) {
+      throw new Error("candidateName is required");
+    }
+    this.candidateName = resolvedName;
+    this.value = resolvedName;
   }
 }
 

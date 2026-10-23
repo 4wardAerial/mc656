@@ -1,24 +1,29 @@
 import { expect, test, describe } from "vitest";
+import { ONUVotingSession, SessionState } from "../voting-session.js";
+import { ONUVote } from "../vote.js";
 
-import { ONUCountingStrategy } from "../counting-strategy"
-import { ONUVote } from "../vote"
+describe("ONUVotingSession", () => {
 
-// Testing ONU Counting Strategy
-describe("ONUCountingStrategy", () => {
+    const castVotes = (session: ONUVotingSession, votes: ONUVote[]): void => {
+        for (const vote of votes) {
+            session.registerVote(vote);
+        }
+        session.countVotes();
+    };
 
     test("must throw an error when votes are empty", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        expect(() => strategy.calculate([])).toThrow(
+        expect(() => session.countVotes()).toThrow(
             "Number of Votes must not be 0"
         );
+        expect(session.getState()).toBe(SessionState.VOTING);
     });
 
-
     test("must approve with exactly 9 votes when they are the majority", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        const votes = [
+        castVotes(session, [
             new ONUVote("v1", "yes"),
             new ONUVote("v2", "yes"),
             new ONUVote("v3", "yes"),
@@ -36,16 +41,16 @@ describe("ONUCountingStrategy", () => {
             new ONUVote("v15", "abstention"),
             new ONUVote("v16", "abstention"),
             new ONUVote("v17", "abstention"),
-        ];
+        ]);
 
-        expect(strategy.calculate(votes)).toBe(true);
+        expect(session.getState()).toBe(SessionState.RESULT);
+        expect(session.getResult()).toBe(true);
     });
 
-
     test("must reprove with exactly 9 yes votes when they are not majority", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        const votes = [
+        castVotes(session, [
             new ONUVote("v1", "yes"),
             new ONUVote("v2", "yes"),
             new ONUVote("v3", "yes"),
@@ -65,16 +70,16 @@ describe("ONUCountingStrategy", () => {
             new ONUVote("v16", "no"),
             new ONUVote("v17", "no"),
             new ONUVote("v18", "no"),
-        ];
+        ]);
 
-        expect(strategy.calculate(votes)).toBe(false);
+        expect(session.getState()).toBe(SessionState.RESULT);
+        expect(session.getResult()).toBe(false);
     });
 
-
     test("It should fail when there are fewer than 9 'yes' votes, even if they constitute a majority.", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        const votes = [
+        castVotes(session, [
             new ONUVote("v1", "yes"),
             new ONUVote("v2", "yes"),
             new ONUVote("v3", "yes"),
@@ -87,16 +92,16 @@ describe("ONUCountingStrategy", () => {
             new ONUVote("v9", "no"),
             new ONUVote("v10", "no"),
             new ONUVote("v11", "abstention"),
-        ];
+        ]);
 
-        expect(strategy.calculate(votes)).toBe(false);
+        expect(session.getState()).toBe(SessionState.RESULT);
+        expect(session.getResult()).toBe(false);
     });
 
-
     test("It should be rejected immediately when a permanent member votes 'no'", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        const votes = [
+        castVotes(session, [
             new ONUVote("v1", "yes"),
             new ONUVote("v2", "yes"),
             new ONUVote("v3", "yes"),
@@ -112,16 +117,16 @@ describe("ONUCountingStrategy", () => {
             new ONUVote("v12", "abstention"),
             new ONUVote("v13", "abstention"),
             new ONUVote("v14", "abstention"),
-        ];
+        ]);
 
-        expect(strategy.calculate(votes)).toBe(false);
+        expect(session.getState()).toBe(SessionState.RESULT);
+        expect(session.getResult()).toBe(false);
     });
 
-
     test("The veto should prevail even when there is a majority of 'yes' votes", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        const votes = [
+        castVotes(session, [
             new ONUVote("v1", "yes"),
             new ONUVote("v2", "yes"),
             new ONUVote("v3", "yes"),
@@ -136,16 +141,16 @@ describe("ONUCountingStrategy", () => {
             new ONUVote("v12", "no", true),
             new ONUVote("v13", "no"),
             new ONUVote("v14", "no"),
-        ];
+        ]);
 
-        expect(strategy.calculate(votes)).toBe(false);
+        expect(session.getState()).toBe(SessionState.RESULT);
+        expect(session.getResult()).toBe(false);
     });
 
-
     test("A 'no' vote from a non-permanent member should not exercise veto power.", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        const votes = [
+        castVotes(session, [
             new ONUVote("v1", "yes"),
             new ONUVote("v2", "yes"),
             new ONUVote("v3", "yes"),
@@ -158,16 +163,16 @@ describe("ONUCountingStrategy", () => {
             new ONUVote("v10", "yes"),
 
             new ONUVote("v11", "no", false),
-        ];
+        ]);
 
-        expect(strategy.calculate(votes)).toBe(true);
+        expect(session.getState()).toBe(SessionState.RESULT);
+        expect(session.getResult()).toBe(true);
     });
 
-
     test("A permanent member voting 'yes' should normally be counted.", () => {
-        const strategy = new ONUCountingStrategy();
+        const session = new ONUVotingSession("Resolution 1");
 
-        const votes = [
+        castVotes(session, [
             new ONUVote("v1", "yes", true),
             new ONUVote("v2", "yes"),
             new ONUVote("v3", "yes"),
@@ -183,10 +188,10 @@ describe("ONUCountingStrategy", () => {
             new ONUVote("v12", "abstention"),
             new ONUVote("v13", "abstention"),
             new ONUVote("v14", "abstention"),
-        ];
+        ]);
 
-        expect(strategy.calculate(votes)).toBe(true);
+        expect(session.getState()).toBe(SessionState.RESULT);
+        expect(session.getResult()).toBe(true);
     });
 
 });
-
