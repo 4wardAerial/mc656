@@ -66,7 +66,7 @@ describe("ConclaveVotingSession", () => {
                 new ConclaveVote("v5", candidateB),
             ]);
 
-            // 3/5 < 2/3 -> increments currentCall and calls setCandidates(allCandidates)
+            // 3/5 < 2/3 -> increments currentCall and resets round with allCandidates
             expect(session.getState()).toBe(SessionState.VOTING);
             expect(session.getCurrentCall()).toBe(1);
             expect(session.getCandidates()).toEqual(allCandidates);
@@ -224,7 +224,7 @@ describe("ConclaveVotingSession", () => {
             expect(session.getCandidates()).toEqual([candidateC, candidateD]);
         });
 
-        test("should throw an error when a vote is cast for a candidate outside the two most voted after 3 tries", () => {
+        test("should reject an invalid candidate vote in registerVote without erasing previously registered valid votes", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             // 3 unsuccessful tries where A and B are top 2 on the 3rd try
@@ -240,17 +240,17 @@ describe("ConclaveVotingSession", () => {
 
             expect(session.getCandidates()).toEqual([candidateA, candidateB]);
 
-            // Try 4: voting for C (not in top 2) must throw
+            // Try 4: v9 votes for valid candidate A, v10 tries to vote for invalid candidate C
             session.registerVote(new ConclaveVote("v9", candidateA));
-            session.registerVote(new ConclaveVote("v10", candidateC));
 
-            expect(() => session.countVotes()).toThrow(
+            expect(() => session.registerVote(new ConclaveVote("v10", candidateC))).toThrow(
                 "Voted candidate is not one of the two most voted of the last call"
             );
-            // Invalid voting does not alter the two most voted or currentCall
-            expect(session.getCurrentCall()).toBe(3);
-            expect(session.getCandidates()).toEqual([candidateA, candidateB]);
-            expect(session.getState()).toBe(SessionState.VOTING);
+
+            // v9's valid vote was NOT erased, so counting now elects candidate A
+            session.countVotes();
+            expect(session.getState()).toBe(SessionState.RESULT);
+            expect(session.getResult()).toBe(candidateA);
         });
 
         test("should elect candidate with > 50% of votes after 3 tries (even if < 2/3)", () => {
@@ -314,6 +314,55 @@ describe("ConclaveVotingSession", () => {
 
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(candidateB);
+        });
+
+        test("should reset currentCall and result when setCandidates is called to start a new election", () => {
+            const session = new ConclaveVotingSession(allCandidates);
+
+            // Exhaust 3 tries so currentCall reaches 3
+            for (let i = 0; i < 3; i++) {
+                castVotes(session, [
+                    new ConclaveVote("v1", candidateA),
+                    new ConclaveVote("v2", candidateA),
+                    new ConclaveVote("v3", candidateB),
+                    new ConclaveVote("v4", candidateB),
+                    new ConclaveVote("v5", candidateC),
+                ]);
+            }
+
+            expect(session.getCurrentCall()).toBe(3);
+
+            // Finish election on 4th try
+            castVotes(session, [
+                new ConclaveVote("v1", candidateA),
+                new ConclaveVote("v2", candidateA),
+                new ConclaveVote("v3", candidateB),
+            ]);
+            expect(session.getState()).toBe(SessionState.RESULT);
+            expect(session.getResult()).toBe(candidateA);
+
+            // Start a brand new election via public setCandidates
+            session.setCandidates(allCandidates);
+            expect(session.getState()).toBe(SessionState.VOTING);
+            expect(session.getCurrentCall()).toBe(0);
+            expect(() => session.getResult()).toThrow(
+                "Result is only available after Counting is complete."
+            );
+
+            // In the 1st round of the new election, 2/5 votes (40%) must NOT elect a candidate
+            castVotes(session, [
+                new ConclaveVote("v1", candidateA),
+                new ConclaveVote("v2", candidateA),
+                new ConclaveVote("v3", candidateB),
+                new ConclaveVote("v4", candidateC),
+                new ConclaveVote("v5", candidateD),
+            ]);
+
+            expect(session.getState()).toBe(SessionState.VOTING);
+            expect(session.getCurrentCall()).toBe(1);
+            expect(() => session.getResult()).toThrow(
+                "Result is only available after Counting is complete."
+            );
         });
 
     });

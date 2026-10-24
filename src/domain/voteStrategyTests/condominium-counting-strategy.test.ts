@@ -220,6 +220,38 @@ describe("CondominiumVotingSession", () => {
             expect(session.getResult()).toBe(false);
         });
 
+        test("should reset firstCall and result when setTopic is called for a new topic", () => {
+            const session = new CondominiumVotingSession("Topic 1");
+
+            // 1st call fails (0.30 <= 0.5)
+            castVotes(session, [
+                new CondominiumVote("v1", 0.30, "yes"),
+            ]);
+            expect(session.getResult()).toBe(false);
+
+            // 2nd call succeeds with 0.30 > 0.15
+            castVotes(session, [
+                new CondominiumVote("v1", 0.30, "yes"),
+            ]);
+            expect(session.getState()).toBe(SessionState.RESULT);
+            expect(session.getResult()).toBe(true);
+
+            // Starting a new topic via setTopic must reset firstCall to true and result to null
+            session.setTopic("Topic 2");
+            expect(session.getState()).toBe(SessionState.VOTING);
+            expect(session.getTopic()).toBe("Topic 2");
+            expect(() => session.getResult()).toThrow(
+                "Result is only available after Counting is complete."
+            );
+
+            // 1st call on Topic 2 with only 0.20 weight must be rejected (requires > 0.50)
+            castVotes(session, [
+                new CondominiumVote("v1", 0.20, "yes"),
+            ]);
+            expect(session.getResult()).toBe(false);
+            expect(session.getState()).toBe(SessionState.VOTING);
+        });
+
     });
 
 });

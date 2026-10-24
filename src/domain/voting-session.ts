@@ -94,6 +94,12 @@ export class ConclaveVotingSession extends VotingSession<ConclaveVote, string> {
     }
 
     public setCandidates(candidates: string[]): void {
+        this.currentCall = 0;
+        this.result = null;
+        this.resetRound(candidates);
+    }
+
+    private resetRound(candidates: string[]): void {
         this.state = SessionState.SETUP;
 
         this.votes = [];
@@ -108,6 +114,19 @@ export class ConclaveVotingSession extends VotingSession<ConclaveVote, string> {
 
     public getCurrentCall(): number {
         return this.currentCall;
+    }
+
+    public override registerVote(vote: ConclaveVote): void {
+        if (vote === null || vote === undefined) {
+            throw new Error("Vote cannot be null.");
+        }
+        if (this.state !== SessionState.VOTING) {
+            throw new Error("Votes can only be registered during Voting state.");
+        }
+        if (this.candidates.length > 0 && !this.candidates.includes(vote.candidateName)) {
+            throw new Error("Voted candidate is not one of the two most voted of the last call");
+        }
+        super.registerVote(vote);
     }
 
     public override countVotes(): void {
@@ -125,11 +144,6 @@ export class ConclaveVotingSession extends VotingSession<ConclaveVote, string> {
         const allVotes = this.votes.length;
 
         for (const vote of this.votes) {
-            if (this.candidates.length > 0 && !this.candidates.includes(vote.candidateName)) {
-                this.votes = [];
-                this.state = SessionState.VOTING;
-                throw new Error("Voted candidate is not one of the two most voted of the last call");
-            }
             const numberOfVotes = voteCount.get(vote.candidateName) ?? 0;
             voteCount.set(vote.candidateName, numberOfVotes + 1);
         }
@@ -154,10 +168,10 @@ export class ConclaveVotingSession extends VotingSession<ConclaveVote, string> {
             this.currentCall++;
 
             if (this.currentCall < 3) {
-                this.setCandidates(this.candidates);
+                this.resetRound(this.candidates);
             } else {
                 const twoMostVoted = [orderedCandidates[0]![0], orderedCandidates[1]![0]];
-                this.setCandidates(twoMostVoted);
+                this.resetRound(twoMostVoted);
             }
         } else {
             // After 3 tries: criteria is voteCount > 50% and, in case of tie, alphabetical order
@@ -179,6 +193,12 @@ export class CondominiumVotingSession extends VotingSession<CondominiumVote, boo
     }
 
     public setTopic(topic: string): void {
+        this.firstCall = true;
+        this.result = null;
+        this.resetRound(topic);
+    }
+
+    private resetRound(topic: string): void {
         this.state = SessionState.SETUP;
 
         this.votes = [];
@@ -218,7 +238,7 @@ export class CondominiumVotingSession extends VotingSession<CondominiumVote, boo
             if (this.result) {
                 this.state = SessionState.RESULT;
             } else {
-                this.setTopic(this.topic);
+                this.resetRound(this.topic);
             }
         } else {
             this.result = yesWeightAll > totalWeightAll / 2;
@@ -243,6 +263,7 @@ export class ONUVotingSession extends VotingSession<ONUVote, boolean> {
 
         this.votes = [];
         this.topic = topic;
+        this.result = null;
 
         this.state = SessionState.VOTING;
     }

@@ -44,8 +44,8 @@ describe("VotingSession Hierarchy and State Machine", () => {
         expect(session.getResult()).toBe(true);
     });
 
-    test("Should allow out-of-order state changes via setCandidates and setTopic", () => {
-        // Condominium / ONU: setTopic resets state to VOTING even after RESULT
+    test("Should allow out-of-order state changes via setCandidates and setTopic and reset previous results", () => {
+        // Condominium / ONU: setTopic resets state to VOTING and clears previous result
         const onuSession = new ONUVotingSession("Topic 1");
         for (let i = 1; i <= 9; i++) {
             onuSession.registerVote(new ONUVote(`v${i}`, "yes"));
@@ -58,6 +58,9 @@ describe("VotingSession Hierarchy and State Machine", () => {
         onuSession.setTopic("Topic 2");
         expect(onuSession.getState()).toBe(SessionState.VOTING);
         expect(onuSession.getTopic()).toBe("Topic 2");
+        expect(() => onuSession.getResult()).toThrow(
+            "Result is only available after Counting is complete."
+        );
 
         // Same voter 'v1' can vote again because votes were cleared
         onuSession.registerVote(new ONUVote("v1", "no", true));
@@ -65,7 +68,7 @@ describe("VotingSession Hierarchy and State Machine", () => {
         expect(onuSession.getState()).toBe(SessionState.RESULT);
         expect(onuSession.getResult()).toBe(false);
 
-        // Conclave: setCandidates resets state to VOTING even after RESULT
+        // Conclave: setCandidates resets state to VOTING and clears previous result
         const conclaveSession = new ConclaveVotingSession(["Setti", "Frare"]);
         conclaveSession.registerVote(new ConclaveVote("v1", "Setti"));
         conclaveSession.countVotes();
@@ -75,6 +78,10 @@ describe("VotingSession Hierarchy and State Machine", () => {
         conclaveSession.setCandidates(["Lucas", "Ana"]);
         expect(conclaveSession.getState()).toBe(SessionState.VOTING);
         expect(conclaveSession.getCandidates()).toEqual(["Lucas", "Ana"]);
+        expect(conclaveSession.getCurrentCall()).toBe(0);
+        expect(() => conclaveSession.getResult()).toThrow(
+            "Result is only available after Counting is complete."
+        );
     });
 
     test("Should block vote registration and countVotes if state is not VOTING", () => {
@@ -94,6 +101,9 @@ describe("VotingSession Hierarchy and State Machine", () => {
         const conclaveSession = new ConclaveVotingSession(["Setti"]);
         conclaveSession.registerVote(new ConclaveVote("v1", "Setti"));
         conclaveSession.countVotes();
+        expect(() => conclaveSession.registerVote(new ConclaveVote("v2", "Setti"))).toThrow(
+            "Votes can only be registered during Voting state."
+        );
         expect(() => conclaveSession.countVotes()).toThrow(
             "Session can only start Counting right after Voting."
         );
@@ -115,6 +125,12 @@ describe("VotingSession Hierarchy and State Machine", () => {
 
         // @ts-expect-error Forcing error to ensure null guard works
         expect(() => session.registerVote(null)).toThrow(
+            "Vote cannot be null."
+        );
+
+        const conclaveSession = new ConclaveVotingSession(["Setti"]);
+        // @ts-expect-error Forcing error to ensure null guard works
+        expect(() => conclaveSession.registerVote(null)).toThrow(
             "Vote cannot be null."
         );
 
