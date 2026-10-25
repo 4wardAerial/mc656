@@ -107,7 +107,11 @@ export class VotingController {
     }
 
     public verifyAdminNotLinked(user: User): boolean {
-
+        const isLinked = this.sessions.some(([, , adminId]) => adminId === user.id);
+        if (isLinked) {
+            throw new Error("Admin can't be deleted: First delete all voting sessions that they still own.");
+        }
+        return true;
     }
 
     // -=-=-=-=-=-=-=-=-=- Vote registration -=-=-=-=-=-=-=-=-=-
