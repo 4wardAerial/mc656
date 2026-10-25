@@ -6,6 +6,7 @@ import { SessionType } from '../domain/session-type.js';
 import type { VoterProfile } from '../domain/user.js';
 import { hashPassword } from '../infrastructure/password-hasher.js';
 import { InvalidCredentialsError, UserController } from './user-controller.js';
+import { VotingController } from '../domain/voting-controller.js';
 
 const CONCLAVE: VoterProfile = { sessionType: SessionType.CONCLAVE, attribute: null };
 const ONU_PERMANENT: VoterProfile = { sessionType: SessionType.ONU, attribute: true };
@@ -15,14 +16,16 @@ describe('UserController', () => {
     let dir: string;
     let voterTable: string;
     let adminTable: string;
+    let votingController: VotingController;
 
-    const newController = (): UserController => new UserController(voterTable, adminTable);
+    const newController = (): UserController => new UserController(voterTable, adminTable, votingController);
     const readTables = (): string => readFileSync(voterTable, 'utf8') + readFileSync(adminTable, 'utf8');
 
     beforeEach(() => {
         dir = mkdtempSync(join(tmpdir(), 'user-controller-'));
         voterTable = join(dir, 'voters.csv');
         adminTable = join(dir, 'admins.csv');
+        votingController = new VotingController();
     });
 
     afterEach(() => {
@@ -243,6 +246,19 @@ describe('UserController', () => {
             controller.signup('id1', 'new', false, CONDO_4_2);
 
             expect(newController().login('id1', 'new', false).attribute).toBe(4.2);
+        });
+
+        it('prevents deleting an administrator who is linked to active voting sessions', () => {
+            const controller = newController();
+            controller.signup('admin1', 'pw', true);
+            const adminUser = controller.login('admin1', 'pw', true);
+
+            votingController.createSession(adminUser, SessionType.CONCLAVE, 'sess-1');
+
+            expect(() => controller.deleteUser('admin1', true)).toThrow(
+                "Admin can't be deleted: First delete all voting sessions that they still own."
+            );
+            expect(controller.login('admin1', 'pw', true).id).toBe('admin1');
         });
     });
 
