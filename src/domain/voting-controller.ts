@@ -1,6 +1,6 @@
 import { User } from './user.js';
 import { SessionType } from './session-type.js'
-import { VotingSession, SessionState } from './voting-session.js';
+import { VotingSession, SessionState, ConclaveVotingSession, CondominiumVoteSession, ONUVotingSession } from './voting-session.js';
 import { 
     type IVote,
     type ICandidate,
@@ -46,8 +46,41 @@ export class VotingController {
 
     // -=-=-=-=-=-=-=-=-=- Session Lifecycle Management -=-=-=-=-=-=-=-=-=-
 
-    public createSession(user: User, sessionType: SessionType, sessionId: string): void {
+    public createSession(
+        user: User,
+        sessionType: SessionType,
+        sessionId: string,
+        setupData?: string | string[]
+    ): void {
+        if (!user.isAdmin) {
+            throw new Error("Only administrators can create sessions.");
+        }
 
+        const exists = this.sessions.some(([s]) => s.getSessionId() === sessionId);
+        if (exists) {
+            throw new Error(`Session with id ${sessionId} already exists.`);
+        }
+
+        let session: VotingSession;
+
+        switch (sessionType) {
+            case SessionType.CONCLAVE: { 
+                const candidates = Array.isArray(setupData) ? setupData : [];
+                session = new ConclaveVotingSession(candidates, sessionId);
+                break;
+            } case SessionType.CONDOMINIUM: {
+                const condominumTopic = typeof setupData === 'string' ? setupData: '';
+                session = new CondominiumVoteSession(condominumTopic, sessionId);
+                break;
+            } case SessionType.ONU: {
+                const onuTopic = typeof setupData === 'string' ? setupData: '';
+                session = new ONUVotingSession(onuTopic, sessionId);
+                break;
+            } default:
+                throw new Error(`Unsupported session type: ${sessionType}`);
+        }
+
+        this.sessions.push([session, sessionType, user.id]);
     }
 
     public deleteSession(user: User, sessionId: string): void {
