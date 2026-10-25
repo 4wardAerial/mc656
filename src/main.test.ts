@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { SessionType } from './domain/session-type.js';
 import { InvalidCredentialsError } from './application/user-controller.js';
+import { VotingController } from './domain/voting-controller.js';
 import { type App, createApp } from './main.js';
 
 describe('App (main)', () => {
@@ -23,6 +24,11 @@ describe('App (main)', () => {
 
     it('starts with nobody logged in', () => {
         expect(app.getCurrentUser()).toBeNull();
+    });
+
+    it('exposes the single VotingController instance', () => {
+        expect(app.votingController).toBeDefined();
+        expect(app.votingController).toBeInstanceOf(VotingController);
     });
 
     it('replaces the current user with the one returned by a successful login', () => {
