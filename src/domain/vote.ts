@@ -55,12 +55,6 @@ export class CondominiumVote implements IVote {
     if (weight == null || weight <= 0) {
       throw new Error("weight must be greater than zero");
     }
-  }
-}
-
-export function validateNoDuplicateVote(votes: IVote[], voterId: string): void {
-  const isDuplicate = votes.some(vote => vote.voterId === voterId);
-  if (isDuplicate) {
-    throw new Error(`Duplicate vote for voterId: ${voterId}`);
+    this.voterId = user.id;
   }
 }
