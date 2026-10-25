@@ -1,6 +1,12 @@
 import { User } from './user.js';
 import { SessionType } from './session-type.js'
-import { VotingSession, SessionState, ConclaveVotingSession, CondominiumVoteSession, ONUVotingSession } from './voting-session.js';
+import { 
+    VotingSession, 
+    SessionState, 
+    ConclaveVotingSession, 
+    CondominiumVoteSession, 
+    ONUVotingSession 
+} from './voting-session.js';
 import { 
     type IVote,
     type ICandidate,
@@ -84,7 +90,20 @@ export class VotingController {
     }
 
     public deleteSession(user: User, sessionId: string): void {
+        if (!user.isAdmin) {
+            throw new Error("Only administrators can delete sessions");
+        }
 
+        const index = this.sessions.findIndex(([s]) => s.getSessionId() === sessionId);
+        if (index === -1) {
+            throw new Error(`Session with id ${sessionId} not found.`);
+        }
+
+        const [, , adminId] = this.sessions[index]!;
+        if (adminId !== user.id) {
+            throw new Error("Administrator is not allowed to delete sessions owned by another administrator.");
+        }
+        this.sessions.splice(index, 1);
     }
 
     public verifyAdminNotLinked(user: User): boolean {
