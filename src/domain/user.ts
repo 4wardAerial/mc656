@@ -53,7 +53,7 @@ export function assertAttributeMatches(sessionType: SessionType, attribute: Vote
     }
 }
 
-const DECIMAL_NUMBER = /^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i;
+const DECIMAL_NUMBER = /^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;
 
 /** Converts the textual `attribute` column of `voterTable` into a typed value. */
 export function parseAttribute(sessionType: SessionType, raw: string): VoterAttribute {
