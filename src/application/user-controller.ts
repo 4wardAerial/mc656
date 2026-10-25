@@ -6,6 +6,7 @@ import {
     formatAttribute,
     parseAttribute
 } from '../domain/user.js';
+import { VotingController } from '../domain/voting-controller.js';
 import { type CsvRow, createCsvTableIfMissing, readCsvTable, writeCsvTable } from '../infrastructure/csv-table.js';
 import { hashPassword, isPasswordHash, verifyPassword } from '../infrastructure/password-hasher.js';
 
@@ -40,7 +41,8 @@ export class UserController {
 
     constructor(
         private readonly voterTablePath: string,
-        private readonly adminTablePath: string
+        private readonly adminTablePath: string,
+        private readonly votingController: VotingController
     ) {
         this.voters = loadTable(voterTablePath, VOTER_TABLE_HEADER, parseVoterRow);
         this.admins = loadTable(adminTablePath, ADMIN_TABLE_HEADER, parseAdminRow);
@@ -85,6 +87,9 @@ export class UserController {
     deleteUser(id: string, isAdmin: boolean): void {
         if (isAdmin) {
             this.assertIdExists(this.admins, id, 'administrator');
+            
+            const adminUser = User.admin(id);
+            this.votingController.verifyAdminNotLinked(adminUser);
             this.saveAdmins(withoutEntry(this.admins, id));
             return;
         }

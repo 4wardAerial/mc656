@@ -1,5 +1,6 @@
 import { UserController } from './application/user-controller.js';
 import type { User } from './domain/user.js';
+import { VotingController } from './domain/voting-controller.js';
 
 export interface AppConfig {
     readonly voterTablePath: string;
@@ -19,7 +20,10 @@ export const DEFAULT_CONFIG: AppConfig = {
 export class App {
     private currentUser: User | null = null;
 
-    constructor(public readonly userController: UserController) {}
+    constructor(
+        public readonly userController: UserController,
+        public readonly votingController: VotingController
+    ) {}
 
     login(id: string, password: string, isAdmin: boolean): User {
         this.currentUser = null;
@@ -37,5 +41,12 @@ export class App {
 }
 
 export function createApp(config: AppConfig = DEFAULT_CONFIG): App {
-    return new App(new UserController(config.voterTablePath, config.adminTablePath));
+    const votingController = new VotingController();
+    const userController = new UserController(
+        config.voterTablePath,
+        config.adminTablePath,
+        votingController
+    );
+
+    return new App(userController, votingController);
 }
