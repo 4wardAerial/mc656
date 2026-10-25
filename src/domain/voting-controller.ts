@@ -1,7 +1,7 @@
 import { Administrator } from './administrator.js';
 import { CondominiumAdministrator } from './condominium-administrator.js';
 import { OnuAdministrator } from './onu-administrator.js';
-import { VotingSession, SessionState } from './voting-session.js';
+import { VotingSession, SessionState, SessionType } from './voting-session.js';
 import { 
     type IVote,
     type ICandidate,
@@ -12,33 +12,41 @@ import {
 
 export class VotingController<TVote extends IVote, TResult> {
     private readonly admin: Administrator;
-    private readonly session: VotingSession<TVote, TResult>;
+    private readonly sessions: Array<[VotingSession<TVote, TResult>, SessionType, string]> = [];
 
-    constructor(admin: Administrator, session: VotingSession<TVote, TResult>) {
-        if (!admin || !session) {
-            throw new Error("Administrator and VotingSession are required.");
+    private findSession(sessionId: string): VotingSession<TVote, TResult> {
+        const entry = this.sessions.find(([session]) => session.getSessionId() === sessionId);
+        if (!entry) {
+            throw new Error(`Session with id ${sessionId} not found.`);
+        }
+        return entry[0];
+    }
+
+    constructor(admin: Administrator, sessions: Array<[VotingSession<TVote, TResult>, SessionType, string]>) {
+        if (!admin || !sessions || sessions.length === 0) {
+            throw new Error("Administrator and VotingSessions are required.");
         }
         this.admin = admin;
-        this.session = session;
+        this.sessions = sessions;
     }
 
     // -=-=-=-=-=-=-=-=-=- State Machine Wrappers -=-=-=-=-=-=-=-=-=-
 
-    public getState(): SessionState {
-        return this.session.getState();
+    public getState(sessionId: string): SessionState {
+        return this.findSession(sessionId).getState();
     }
 
-    public countVotes(): void {
-        this.session.countVotes();
+    public countVotes(sessionId: string): void {
+        this.findSession(sessionId).countVotes();
     }
 
-    public getResult(): TResult {
-        return this.session.getResult();
+    public getResult(sessionId: string): TResult {
+        return this.findSession(sessionId).getResult();
     }
 
     // -=-=-=-=-=-=-=-=-=- Core Logic -=-=-=-=-=-=-=-=-=-
 
-    public castVote(voterId: string, value: 'yes' | 'no' | 'abstention' | string | ICandidate): void {
+    public castVote(voterId: string, value: 'yes' | 'no' | 'abstention' | string | ICandidate, sessionId: string): void {
         // 1. Verify the voter is registered with the Administrator
         const isRegistered = this.admin.listRegisteredVoters().some(voter => voter.id === voterId);
         if (!isRegistered) {
@@ -64,6 +72,6 @@ export class VotingController<TVote extends IVote, TResult> {
         }
 
         // 3. Delegate to the voting session (which also validates duplicate votes)
-        this.session.registerVote(vote);
+        this.findSession(sessionId).registerVote(vote);
     }
 }
