@@ -74,4 +74,16 @@ export class VotingController<TVote extends IVote, TResult> {
         // 3. Delegate to the voting session (which also validates duplicate votes)
         this.findSession(sessionId).registerVote(vote);
     }
+
+    public createSession(sessionType: SessionType, sessionId: string): void {
+
+    }
+
+    public deleteSession(sessionId: string): void {
+
+    }
+
+    public verifyAdminNotLinked(): boolean {
+
+    }
 }
