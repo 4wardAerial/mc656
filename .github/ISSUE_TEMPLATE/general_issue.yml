@@ -1,41 +1,42 @@
 name: General Issue
 description: Use this for general tasks, technical debt, documentation, or discussions.
-title: "[Task]: "
-labels: ["task"]
 body:
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: Please describe the task, question, or improvement in detail.
-      placeholder: What needs to be done or discussed?
+      description: Please describe the task, question, or improvement in detail, including context and motivation.
+      placeholder: What needs to be done and why is it necessary?
     validations:
       required: true
 
   - type: textarea
-    id: context
+    id: development-tasks
     attributes:
-      label: Context & Motivation
-      description: Why is this necessary? Provide any relevant background, links, or references.
+      label: Development Tasks
+      description: List the steps required to complete this issue.
+      value: |
+        - 
+        - 
     validations:
       required: false
 
   - type: textarea
-    id: tasks
+    id: acceptance-criteria
     attributes:
-      label: Action Items / To-Do
-      description: If applicable, list the steps required to complete this issue. Use checkboxes.
+      label: Acceptance Criteria
+      description: List the requirements and tests that must pass for this task to be considered complete.
       value: |
-        - [ ] 
-        - [ ] 
+        - 
+        - 
     validations:
       required: false
 
   - type: input
     id: related-issues
     attributes:
-      label: Related Issues or Epics
-      description: Link any related issues, PRs, or Epics to maintain traceability (e.g., #12).
+      label: Related Issues
+      description: Link any related issues or PRs to maintain traceability.
       placeholder: "#"
     validations:
       required: false
