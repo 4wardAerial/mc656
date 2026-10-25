@@ -1,5 +1,6 @@
 import { UserController } from './application/user-controller.js';
-import type { User } from './domain/user.js';
+import { User } from './domain/user.js';
+import { VotingController } from './domain/voting-controller.js';
 
 export interface AppConfig {
     readonly voterTablePath: string;
@@ -19,7 +20,10 @@ export const DEFAULT_CONFIG: AppConfig = {
 export class App {
     private currentUser: User | null = null;
 
-    constructor(public readonly userController: UserController) {}
+    constructor(
+        public readonly userController: UserController,
+        public readonly votingController: VotingController
+    ) {}
 
     login(id: string, password: string, isAdmin: boolean): User {
         this.currentUser = null;
@@ -34,8 +38,19 @@ export class App {
     getCurrentUser(): User | null {
         return this.currentUser;
     }
+
+    deleteUser(id: string, isAdmin: boolean): void {
+        if (isAdmin) {
+            const adminUser = User.admin(id);
+            this.votingController.verifyAdminNotLinked(adminUser);
+        }
+        this.userController.deleteUser(id, isAdmin);
+    }
 }
 
 export function createApp(config: AppConfig = DEFAULT_CONFIG): App {
-    return new App(new UserController(config.voterTablePath, config.adminTablePath));
+    const votingController = new VotingController();
+    const userController = new UserController(config.voterTablePath, config.adminTablePath);
+
+    return new App(userController, votingController);
 }

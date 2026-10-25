@@ -40,7 +40,7 @@ export class UserController {
 
     constructor(
         private readonly voterTablePath: string,
-        private readonly adminTablePath: string
+        private readonly adminTablePath: string,
     ) {
         this.voters = loadTable(voterTablePath, VOTER_TABLE_HEADER, parseVoterRow);
         this.admins = loadTable(adminTablePath, ADMIN_TABLE_HEADER, parseAdminRow);

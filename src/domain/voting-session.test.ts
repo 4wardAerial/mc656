@@ -12,8 +12,18 @@ import {
     CondominiumVote,
     ONUVote,
 } from "./vote.js";
+import { User } from "./user.js";
 
 describe("VotingSession Hierarchy and State Machine", () => {
+
+    const makeCondoUser = (id: string, weight: number): User =>
+        User.voter(id, { sessionType: SessionType.CONDOMINIUM, attribute: weight });
+
+    const makeOnuUser = (id: string, isPermanent = false): User =>
+        User.voter(id, { sessionType: SessionType.ONU, attribute: isPermanent });
+
+    const makeConclaveUser = (id: string): User =>
+        User.voter(id, { sessionType: SessionType.CONCLAVE, attribute: null });
 
     test("Concrete classes should inherit from VotingSession and set proper SessionType", () => {
         const conclaveSession = new ConclaveVotingSession(["Candidate A", "Candidate B"], "session-1");
@@ -37,7 +47,7 @@ describe("VotingSession Hierarchy and State Machine", () => {
         const session = new CondominiumVotingSession("Budget Approval");
         expect(session.getState()).toBe(SessionState.VOTING);
 
-        session.registerVote(new CondominiumVote("v1", 0.6, "yes"));
+        session.registerVote(new CondominiumVote(makeCondoUser("v1", 0.6), 0.6, "yes"));
         session.countVotes();
 
         expect(session.getState()).toBe(SessionState.RESULT);
@@ -48,7 +58,7 @@ describe("VotingSession Hierarchy and State Machine", () => {
         // Condominium / ONU: setTopic resets state to VOTING and clears previous result
         const onuSession = new ONUVotingSession("Topic 1");
         for (let i = 1; i <= 9; i++) {
-            onuSession.registerVote(new ONUVote(`v${i}`, "yes"));
+            onuSession.registerVote(new ONUVote(makeOnuUser(`v${i}`), "yes"));
         }
         onuSession.countVotes();
         expect(onuSession.getState()).toBe(SessionState.RESULT);
@@ -63,14 +73,14 @@ describe("VotingSession Hierarchy and State Machine", () => {
         );
 
         // Same voter 'v1' can vote again because votes were cleared
-        onuSession.registerVote(new ONUVote("v1", "no", true));
+        onuSession.registerVote(new ONUVote(makeOnuUser("v1", true), "no", true));
         onuSession.countVotes();
         expect(onuSession.getState()).toBe(SessionState.RESULT);
         expect(onuSession.getResult()).toBe(false);
 
         // Conclave: setCandidates resets state to VOTING and clears previous result
         const conclaveSession = new ConclaveVotingSession(["Setti", "Frare"]);
-        conclaveSession.registerVote(new ConclaveVote("v1", "Setti"));
+        conclaveSession.registerVote(new ConclaveVote(makeConclaveUser("v1"), "Setti"));
         conclaveSession.countVotes();
         expect(conclaveSession.getState()).toBe(SessionState.RESULT);
         expect(conclaveSession.getResult()).toBe("Setti");
@@ -86,12 +96,12 @@ describe("VotingSession Hierarchy and State Machine", () => {
 
     test("Should block vote registration and countVotes if state is not VOTING", () => {
         const condoSession = new CondominiumVotingSession("Topic");
-        condoSession.registerVote(new CondominiumVote("v1", 0.7, "yes"));
+        condoSession.registerVote(new CondominiumVote(makeCondoUser("v1", 0.7), 0.7, "yes"));
         condoSession.countVotes();
 
         expect(condoSession.getState()).toBe(SessionState.RESULT);
 
-        expect(() => condoSession.registerVote(new CondominiumVote("v2", 0.3, "yes"))).toThrow(
+        expect(() => condoSession.registerVote(new CondominiumVote(makeCondoUser("v2", 0.3), 0.3, "yes"))).toThrow(
             "Votes can only be registered during Voting state."
         );
         expect(() => condoSession.countVotes()).toThrow(
@@ -99,9 +109,9 @@ describe("VotingSession Hierarchy and State Machine", () => {
         );
 
         const conclaveSession = new ConclaveVotingSession(["Setti"]);
-        conclaveSession.registerVote(new ConclaveVote("v1", "Setti"));
+        conclaveSession.registerVote(new ConclaveVote(makeConclaveUser("v1"), "Setti"));
         conclaveSession.countVotes();
-        expect(() => conclaveSession.registerVote(new ConclaveVote("v2", "Setti"))).toThrow(
+        expect(() => conclaveSession.registerVote(new ConclaveVote(makeConclaveUser("v2"), "Setti"))).toThrow(
             "Votes can only be registered during Voting state."
         );
         expect(() => conclaveSession.countVotes()).toThrow(
@@ -109,7 +119,7 @@ describe("VotingSession Hierarchy and State Machine", () => {
         );
 
         const onuSession = new ONUVotingSession("Topic");
-        onuSession.registerVote(new ONUVote("v1", "no", true));
+        onuSession.registerVote(new ONUVote(makeOnuUser("v1", true), "no", true));
         onuSession.countVotes();
         expect(() => onuSession.countVotes()).toThrow(
             "Session can only start Counting right after Voting."
@@ -134,8 +144,8 @@ describe("VotingSession Hierarchy and State Machine", () => {
             "Vote cannot be null."
         );
 
-        session.registerVote(new ONUVote("v1", "yes"));
-        expect(() => session.registerVote(new ONUVote("v1", "no"))).toThrow(
+        session.registerVote(new ONUVote(makeOnuUser("v1"), "yes"));
+        expect(() => session.registerVote(new ONUVote(makeOnuUser("v1"), "no"))).toThrow(
             "Duplicate vote for voterId: v1"
         );
     });

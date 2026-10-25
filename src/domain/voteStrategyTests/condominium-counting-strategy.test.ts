@@ -1,8 +1,13 @@
 import { expect, test, describe } from "vitest";
 import { CondominiumVotingSession, SessionState } from "../voting-session.js";
 import { CondominiumVote } from "../vote.js";
+import { User } from "../user.js";
+import { SessionType } from "../session-type.js";
 
 describe("CondominiumVotingSession", () => {
+
+    const makeUser = (id: string, weight: number): User =>
+        User.voter(id, { sessionType: SessionType.CONDOMINIUM, attribute: weight });
 
     const castVotes = (session: CondominiumVotingSession, votes: CondominiumVote[]): void => {
         for (const vote of votes) {
@@ -26,10 +31,10 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v0", 0.30, "yes"),
-                new CondominiumVote("v1", 0.30, "yes"),
-                new CondominiumVote("v2", 0.20, "no"),
-                new CondominiumVote("v3", 0.20, "abstention"),
+                new CondominiumVote(makeUser("v0", 0.30), 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
+                new CondominiumVote(makeUser("v2", 0.20), 0.20, "no"),
+                new CondominiumVote(makeUser("v3", 0.20), 0.20, "abstention"),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -40,10 +45,10 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v0", 0.30, "yes"),
-                new CondominiumVote("v1", 0.20, "yes"),
-                new CondominiumVote("v2", 0.30, "no"),
-                new CondominiumVote("v3", 0.20, "abstention"),
+                new CondominiumVote(makeUser("v0", 0.30), 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.20), 0.20, "yes"),
+                new CondominiumVote(makeUser("v2", 0.30), 0.30, "no"),
+                new CondominiumVote(makeUser("v3", 0.20), 0.20, "abstention"),
             ]);
 
             expect(session.getResult()).toBe(false);
@@ -54,9 +59,9 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.40, "yes"),
-                new CondominiumVote("v2", 0.30, "no"),
-                new CondominiumVote("v3", 0.20, "abstention"),
+                new CondominiumVote(makeUser("v1", 0.40), 0.40, "yes"),
+                new CondominiumVote(makeUser("v2", 0.30), 0.30, "no"),
+                new CondominiumVote(makeUser("v3", 0.20), 0.20, "abstention"),
             ]);
 
             expect(session.getResult()).toBe(false);
@@ -67,8 +72,8 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.40, "yes"),
-                new CondominiumVote("v2", 0.20, "no"),
+                new CondominiumVote(makeUser("v1", 0.40), 0.40, "yes"),
+                new CondominiumVote(makeUser("v2", 0.20), 0.20, "no"),
             ]);
 
             expect(session.getResult()).toBe(false);
@@ -79,8 +84,8 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.51, "yes"),
-                new CondominiumVote("v2", 0.49, "no"),
+                new CondominiumVote(makeUser("v1", 0.51), 0.51, "yes"),
+                new CondominiumVote(makeUser("v2", 0.49), 0.49, "no"),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -91,7 +96,7 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.60, "yes"),
+                new CondominiumVote(makeUser("v1", 0.60), 0.60, "yes"),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -106,15 +111,15 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
 
             expect(session.getResult()).toBe(false);
             expect(session.getState()).toBe(SessionState.VOTING);
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.40, "yes"),
-                new CondominiumVote("v2", 0.20, "no"),
+                new CondominiumVote(makeUser("v1", 0.40), 0.40, "yes"),
+                new CondominiumVote(makeUser("v2", 0.20), 0.20, "no"),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -125,13 +130,13 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
-                new CondominiumVote("v2", 0.30, "no"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
+                new CondominiumVote(makeUser("v2", 0.30), 0.30, "no"),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(false);
@@ -141,14 +146,14 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.25, "yes"),
-                new CondominiumVote("v2", 0.30, "no"),
-                new CondominiumVote("v3", 0.10, "abstention"),
+                new CondominiumVote(makeUser("v1", 0.25), 0.25, "yes"),
+                new CondominiumVote(makeUser("v2", 0.30), 0.30, "no"),
+                new CondominiumVote(makeUser("v3", 0.10), 0.10, "abstention"),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(false);
@@ -158,13 +163,13 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.31, "yes"),
-                new CondominiumVote("v2", 0.29, "no"),
+                new CondominiumVote(makeUser("v1", 0.31), 0.31, "yes"),
+                new CondominiumVote(makeUser("v2", 0.29), 0.29, "no"),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(true);
@@ -174,14 +179,14 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
-                new CondominiumVote("v2", 0.20, "abstention"),
-                new CondominiumVote("v3", 0.10, "no"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
+                new CondominiumVote(makeUser("v2", 0.20), 0.20, "abstention"),
+                new CondominiumVote(makeUser("v3", 0.10), 0.10, "no"),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(false);
@@ -191,14 +196,14 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "no"),
-                new CondominiumVote("v2", 0.20, "no"),
-                new CondominiumVote("v3", 0.10, "no"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "no"),
+                new CondominiumVote(makeUser("v2", 0.20), 0.20, "no"),
+                new CondominiumVote(makeUser("v3", 0.10), 0.10, "no"),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(false);
@@ -208,13 +213,13 @@ describe("CondominiumVotingSession", () => {
             const session = new CondominiumVotingSession("Fee Adjustment");
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
 
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "abstention"),
-                new CondominiumVote("v2", 0.20, "abstention"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "abstention"),
+                new CondominiumVote(makeUser("v2", 0.20), 0.20, "abstention"),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(false);
@@ -225,13 +230,13 @@ describe("CondominiumVotingSession", () => {
 
             // 1st call fails (0.30 <= 0.5)
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
 
             // 2nd call succeeds with 0.30 > 0.15
             castVotes(session, [
-                new CondominiumVote("v1", 0.30, "yes"),
+                new CondominiumVote(makeUser("v1", 0.30), 0.30, "yes"),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(true);
@@ -246,7 +251,7 @@ describe("CondominiumVotingSession", () => {
 
             // 1st call on Topic 2 with only 0.20 weight must be rejected (requires > 0.50)
             castVotes(session, [
-                new CondominiumVote("v1", 0.20, "yes"),
+                new CondominiumVote(makeUser("v1", 0.20), 0.20, "yes"),
             ]);
             expect(session.getResult()).toBe(false);
             expect(session.getState()).toBe(SessionState.VOTING);

@@ -1,138 +1,127 @@
-import { describe, test, expect } from 'vitest';
-import { Administrator } from './administrator.js';
-import { OnuAdministrator } from './onu-administrator.js';
-import { CondominiumAdministrator } from './condominium-administrator.js';
+import { describe, test, expect, beforeEach } from 'vitest';
 import {
-    ConclaveVotingSession,
-    CondominiumVotingSession,
-    ONUVotingSession,
-    SessionState
+    SessionState,
+    SessionType,
 } from './voting-session.js';
-import { Voter } from './voter.js';
 import { VotingController } from './voting-controller.js';
+import { User } from './user.js';
 
 describe('VotingController', () => {
+    let controller: VotingController;
+    let admin: User;
+    let otherAdmin: User;
+    let conclaveVoter: User;
+    let condoVoter: User;
+    let onuVoter: User;
 
-    describe('Constructor and State Wrappers', () => {
+    beforeEach(() => {
+        controller = new VotingController();
+        admin = User.admin('admin-1');
+        otherAdmin = User.admin('admin-2');
 
-        test('should throw an error if missing dependencies', () => {
-            // @ts-expect-error Forcing error to ensure null guard works
-            expect(() => new VotingController(null, null)).toThrow();
+        conclaveVoter = User.voter('v1', { sessionType: SessionType.CONCLAVE, attribute: null });
+        condoVoter = User.voter('v2', { sessionType: SessionType.CONDOMINIUM, attribute: 0.6 });
+        onuVoter = User.voter('v3', { sessionType: SessionType.ONU, attribute: true });
+    });
+
+    describe('Session Management & Lifecycle', () => {
+        test('should allow administrator to create sessions with setupData', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1', ['Candidate A', 'Candidate B']);
+            expect(controller.getState('sess-1')).toBe(SessionState.VOTING);
+
+            controller.createSession(admin, SessionType.CONDOMINIUM, 'sess-2', 'Pool Reform');
+            expect(controller.getState('sess-2')).toBe(SessionState.VOTING);
+
+            controller.createSession(admin, SessionType.ONU, 'sess-3', 'Resolution 42');
+            expect(controller.getState('sess-3')).toBe(SessionState.VOTING);
         });
 
-        test('should advance the underlying session state', () => {
-            const admin = new Administrator('admin-1');
-            const voter = new Voter('v1', 'Leonardo');
-            admin.registerVoter(voter);
+        test('should throw error when non-admin tries to create a session', () => {
+            expect(() => controller.createSession(conclaveVoter, SessionType.CONCLAVE, 'sess-1'))
+                .toThrow('Only administrators can create sessions.');
+        });
 
-            const session = new ConclaveVotingSession(['Lucas', 'Victor']);
-            const controller = new VotingController(admin, session);
+        test('should throw error when creating a session with an existing id', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1');
+            expect(() => controller.createSession(admin, SessionType.CONCLAVE, 'sess-1'))
+                .toThrow('Session with id sess-1 already exists.');
+        });
 
-            expect(controller.getState()).toBe(SessionState.VOTING);
+        test('should delete session owned by the admin', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1');
+            controller.deleteSession(admin, 'sess-1');
+            expect(() => controller.getState('sess-1')).toThrow('Session with id sess-1 not found.');
+        });
 
-            controller.castVote('v1', 'Lucas');
-            controller.countVotes();
+        test('should throw error when non-admin tries to delete a session', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1');
+            expect(() => controller.deleteSession(conclaveVoter, 'sess-1'))
+                .toThrow('Only administrators can delete sessions.');
+        });
 
-            expect(controller.getState()).toBe(SessionState.RESULT);
-            expect(controller.getResult()).toBe('Lucas');
+        test('should throw error when deleting another admin session', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1');
+            expect(() => controller.deleteSession(otherAdmin, 'sess-1'))
+                .toThrow('Administrator is not allowed to delete sessions owned by another administrator.');
+        });
+
+        test('verifyAdminNotLinked should throw error if admin has linked sessions', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1');
+            expect(() => controller.verifyAdminNotLinked(admin))
+                .toThrow("Admin can't be deleted: First delete all voting sessions that they still own.");
+        });
+
+        test('verifyAdminNotLinked should return true if admin has no linked sessions', () => {
+            expect(controller.verifyAdminNotLinked(admin)).toBe(true);
         });
     });
 
-    describe('Core Voting Logic (castVote)', () => {
-
-        test('should throw an error when casting a vote for an unregistered voter', () => {
-            const admin = new Administrator('admin-1');
-            const session = new ConclaveVotingSession(['Lucas']);
-            const controller = new VotingController(admin, session);
-
-            expect(() => controller.castVote('unregistered-voter', 'Lucas')).toThrow(
-                'Voter with id unregistered-voter is not registered.'
-            );
+    describe('Core Voting Logic & Domain Delegation (castVote)', () => {
+        test('should throw error if admin tries to vote', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1', ['Candidate A']);
+            expect(() => controller.castVote(admin, 'Candidate A', 'sess-1'))
+                .toThrow('Administrators cannot cast votes.');
         });
 
-        test('should throw an error when the same voter attempts to vote twice', () => {
-            const admin = new Administrator('admin-1');
-            const voter = new Voter('v1', 'Frare');
-            admin.registerVoter(voter);
-
-            const session = new ConclaveVotingSession(['Lucas', 'Victor']);
-            const controller = new VotingController(admin, session);
-
-            // First vote should succeed
-            controller.castVote('v1', 'Lucas');
-
-            // Second vote should trigger the duplicate error from vote.ts
-            expect(() => controller.castVote('v1', 'Victor')).toThrow(
-                'Duplicate vote for voterId: v1'
-            );
+        test('should throw error if user sessionType does not match session type', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1', ['Candidate A']);
+            expect(() => controller.castVote(condoVoter, 'yes', 'sess-1'))
+                .toThrow('User session type (CONDOMINIUM) does not match session type (CONCLAVE).');
         });
 
-        test('should successfully register a Conclave vote', () => {
-            const admin = new Administrator('admin-1');
-            const voter = new Voter('v1', 'Leonardo');
-            admin.registerVoter(voter);
+        test('should register and count Conclave votes successfully', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-conclave', ['Lucas', 'Victor']);
+            controller.castVote(conclaveVoter, 'Lucas', 'sess-conclave');
+            controller.countVotes('sess-conclave');
 
-            const session = new ConclaveVotingSession(['Lucas', 'Victor']);
-            const controller = new VotingController(admin, session);
-
-            controller.castVote('v1', 'Lucas');
-            controller.countVotes();
-
-            expect(controller.getState()).toBe(SessionState.RESULT);
-            expect(controller.getResult()).toBe('Lucas');
-        });
-    });
-
-    describe('Domain-Specific Vote Construction', () => {
-
-        test('should fetch permanent status and build ONUVote when using OnuAdministrator', () => {
-            const admin = new OnuAdministrator('onu-admin');
-            const voter = new Voter('v1', 'Victor');
-            // Registering as a permanent member
-            admin.registerMemberState(voter, true);
-
-            const session = new ONUVotingSession('Peace Resolution');
-            const controller = new VotingController(admin, session);
-
-            // Permanent member voting 'no' triggers immediate veto
-            controller.castVote('v1', 'no');
-            controller.countVotes();
-
-            expect(controller.getState()).toBe(SessionState.RESULT);
-            expect(controller.getResult()).toBe(false);
+            expect(controller.getState('sess-conclave')).toBe(SessionState.RESULT);
+            expect(controller.getResult('sess-conclave')).toBe('Lucas');
         });
 
-        test('should fetch weight and build CondominiumVote when using CondominiumAdministrator', () => {
-            const admin = new CondominiumAdministrator('condo-admin');
-            const voter = new Voter('v1', 'Apartment 101');
-            const voterWeight = 0.60;
+        test('should register and count Condominium votes using User attribute weight', () => {
+            controller.createSession(admin, SessionType.CONDOMINIUM, 'sess-condo', 'Facade Painting');
+            controller.castVote(condoVoter, 'yes', 'sess-condo');
+            controller.countVotes('sess-condo');
 
-            admin.registerCondoMember(voter, voterWeight);
-
-            const session = new CondominiumVotingSession('Facade Painting');
-            const controller = new VotingController(admin, session);
-
-            controller.castVote('v1', 'yes');
-            controller.countVotes();
-
-            expect(controller.getState()).toBe(SessionState.RESULT);
-            expect(controller.getResult()).toBe(true);
+            expect(controller.getState('sess-condo')).toBe(SessionState.RESULT);
+            expect(controller.getResult('sess-condo')).toBe(true);
         });
 
-        test('should throw an error if a condominium voter has no weight assigned', () => {
-            const admin = new CondominiumAdministrator('condo-admin');
-            const voter = new Voter('v1', 'Apartment 102');
+        test('should register and count ONU votes using User attribute for permanent member veto', () => {
+            controller.createSession(admin, SessionType.ONU, 'sess-onu', 'Peace Agreement');
+            controller.castVote(onuVoter, 'no', 'sess-onu');
+            controller.countVotes('sess-onu');
 
-            // Registering the voter directly via the base class method, bypassing the weight assignment
-            admin.registerVoter(voter);
+            expect(controller.getState('sess-onu')).toBe(SessionState.RESULT);
+            expect(controller.getResult('sess-onu')).toBe(false);
+        });
 
-            const session = new CondominiumVotingSession('Elevator Maintenance');
-            const controller = new VotingController(admin, session);
+        test('should throw duplicate vote error if same user votes twice in the same session', () => {
+            controller.createSession(admin, SessionType.CONCLAVE, 'sess-1', ['Lucas', 'Victor']);
+            controller.castVote(conclaveVoter, 'Lucas', 'sess-1');
 
-            expect(() => controller.castVote('v1', 'yes')).toThrow(
-                'Weight not found for Condominium voter v1'
-            );
+            expect(() => controller.castVote(conclaveVoter, 'Victor', 'sess-1'))
+                .toThrow('Duplicate vote for voterId: v1');
         });
     });
-
 });

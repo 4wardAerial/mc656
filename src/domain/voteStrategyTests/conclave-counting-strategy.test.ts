@@ -1,6 +1,8 @@
 import { expect, test, describe } from "vitest";
 import { ConclaveVotingSession, SessionState } from "../voting-session.js";
 import { ConclaveVote } from "../vote.js";
+import { User } from "../user.js";
+import { SessionType } from "../session-type.js";
 
 describe("ConclaveVotingSession", () => {
 
@@ -9,6 +11,9 @@ describe("ConclaveVotingSession", () => {
     const candidateC = "Candidate C";
     const candidateD = "Candidate D";
     const allCandidates = [candidateA, candidateB, candidateC, candidateD];
+
+    const makeUser = (id: string): User => 
+        User.voter(id, { sessionType: SessionType.CONCLAVE, attribute: null });
 
     const castVotes = (session: ConclaveVotingSession, votes: ConclaveVote[]): void => {
         for (const vote of votes) {
@@ -32,9 +37,9 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateB),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -45,10 +50,10 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateA),
-                new ConclaveVote("v4", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateA),
+                new ConclaveVote(makeUser("v4"), candidateB),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -59,11 +64,11 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateA),
-                new ConclaveVote("v4", candidateB),
-                new ConclaveVote("v5", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateA),
+                new ConclaveVote(makeUser("v4"), candidateB),
+                new ConclaveVote(makeUser("v5"), candidateB),
             ]);
 
             // 3/5 < 2/3 -> increments currentCall and resets round with allCandidates
@@ -76,18 +81,18 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateB),
-                new ConclaveVote("v2", candidateC),
-                new ConclaveVote("v3", candidateD),
+                new ConclaveVote(makeUser("v1"), candidateB),
+                new ConclaveVote(makeUser("v2"), candidateC),
+                new ConclaveVote(makeUser("v3"), candidateD),
             ]);
 
             expect(session.getState()).toBe(SessionState.VOTING);
             expect(session.getCurrentCall()).toBe(1);
 
             castVotes(session, [
-                new ConclaveVote("v4", candidateA),
-                new ConclaveVote("v5", candidateA),
-                new ConclaveVote("v6", candidateB),
+                new ConclaveVote(makeUser("v4"), candidateA),
+                new ConclaveVote(makeUser("v5"), candidateA),
+                new ConclaveVote(makeUser("v6"), candidateB),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -98,20 +103,20 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateB),
-                new ConclaveVote("v3", candidateC),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateB),
+                new ConclaveVote(makeUser("v3"), candidateC),
             ]);
 
             expect(session.getState()).toBe(SessionState.VOTING);
             expect(session.getCurrentCall()).toBe(1);
 
             castVotes(session, [
-                new ConclaveVote("v4", candidateA),
-                new ConclaveVote("v5", candidateA),
-                new ConclaveVote("v6", candidateB),
-                new ConclaveVote("v7", candidateB),
-                new ConclaveVote("v8", candidateC),
+                new ConclaveVote(makeUser("v4"), candidateA),
+                new ConclaveVote(makeUser("v5"), candidateA),
+                new ConclaveVote(makeUser("v6"), candidateB),
+                new ConclaveVote(makeUser("v7"), candidateB),
+                new ConclaveVote(makeUser("v8"), candidateC),
             ]);
 
             // 2/5 < 2/3 -> 2nd try fails, still keeps all candidates for the 3rd try
@@ -128,9 +133,9 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateA),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateA),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -141,7 +146,7 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
+                new ConclaveVote(makeUser("v1"), candidateA),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -153,34 +158,34 @@ describe("ConclaveVotingSession", () => {
 
             // Try 1
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateB),
-                new ConclaveVote("v3", candidateC),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateB),
+                new ConclaveVote(makeUser("v3"), candidateC),
             ]);
             expect(session.getCurrentCall()).toBe(1);
 
             // Try 2
             castVotes(session, [
-                new ConclaveVote("v4", candidateA),
-                new ConclaveVote("v5", candidateB),
-                new ConclaveVote("v6", candidateC),
+                new ConclaveVote(makeUser("v4"), candidateA),
+                new ConclaveVote(makeUser("v5"), candidateB),
+                new ConclaveVote(makeUser("v6"), candidateC),
             ]);
             expect(session.getCurrentCall()).toBe(2);
 
             // Try 3: A and B are the two most voted candidates
             castVotes(session, [
-                new ConclaveVote("v7", candidateA),
-                new ConclaveVote("v8", candidateA),
-                new ConclaveVote("v9", candidateB),
-                new ConclaveVote("v10", candidateB),
-                new ConclaveVote("v11", candidateC),
+                new ConclaveVote(makeUser("v7"), candidateA),
+                new ConclaveVote(makeUser("v8"), candidateA),
+                new ConclaveVote(makeUser("v9"), candidateB),
+                new ConclaveVote(makeUser("v10"), candidateB),
+                new ConclaveVote(makeUser("v11"), candidateC),
             ]);
             expect(session.getCurrentCall()).toBe(3);
             expect(session.getCandidates()).toEqual([candidateA, candidateB]);
 
             // Try 4: A is allowed and wins
             castVotes(session, [
-                new ConclaveVote("v12", candidateA),
+                new ConclaveVote(makeUser("v12"), candidateA),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -196,27 +201,27 @@ describe("ConclaveVotingSession", () => {
 
             // Try 1
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateB),
-                new ConclaveVote("v3", candidateC),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateB),
+                new ConclaveVote(makeUser("v3"), candidateC),
             ]);
             expect(session.getCandidates()).toEqual(allCandidates);
 
             // Try 2
             castVotes(session, [
-                new ConclaveVote("v4", candidateA),
-                new ConclaveVote("v5", candidateB),
-                new ConclaveVote("v6", candidateC),
+                new ConclaveVote(makeUser("v4"), candidateA),
+                new ConclaveVote(makeUser("v5"), candidateB),
+                new ConclaveVote(makeUser("v6"), candidateC),
             ]);
             expect(session.getCandidates()).toEqual(allCandidates);
 
             // Try 3: C (2 votes) and D (2 votes) are the two most voted
             castVotes(session, [
-                new ConclaveVote("v7", candidateC),
-                new ConclaveVote("v8", candidateC),
-                new ConclaveVote("v9", candidateD),
-                new ConclaveVote("v10", candidateD),
-                new ConclaveVote("v11", candidateA),
+                new ConclaveVote(makeUser("v7"), candidateC),
+                new ConclaveVote(makeUser("v8"), candidateC),
+                new ConclaveVote(makeUser("v9"), candidateD),
+                new ConclaveVote(makeUser("v10"), candidateD),
+                new ConclaveVote(makeUser("v11"), candidateA),
             ]);
 
             expect(session.getCurrentCall()).toBe(3);
@@ -230,20 +235,20 @@ describe("ConclaveVotingSession", () => {
             // 3 unsuccessful tries where A and B are top 2 on the 3rd try
             for (let i = 0; i < 3; i++) {
                 castVotes(session, [
-                    new ConclaveVote("v1", candidateA),
-                    new ConclaveVote("v2", candidateA),
-                    new ConclaveVote("v3", candidateB),
-                    new ConclaveVote("v4", candidateB),
-                    new ConclaveVote("v5", candidateC),
+                    new ConclaveVote(makeUser("v1"), candidateA),
+                    new ConclaveVote(makeUser("v2"), candidateA),
+                    new ConclaveVote(makeUser("v3"), candidateB),
+                    new ConclaveVote(makeUser("v4"), candidateB),
+                    new ConclaveVote(makeUser("v5"), candidateC),
                 ]);
             }
 
             expect(session.getCandidates()).toEqual([candidateA, candidateB]);
 
             // Try 4: v9 votes for valid candidate A, v10 tries to vote for invalid candidate C
-            session.registerVote(new ConclaveVote("v9", candidateA));
+            session.registerVote(new ConclaveVote(makeUser("v9"), candidateA));
 
-            expect(() => session.registerVote(new ConclaveVote("v10", candidateC))).toThrow(
+            expect(() => session.registerVote(new ConclaveVote(makeUser("v10"), candidateC))).toThrow(
                 "Voted candidate is not one of the two most voted of the last call"
             );
 
@@ -258,11 +263,11 @@ describe("ConclaveVotingSession", () => {
 
             for (let i = 0; i < 3; i++) {
                 castVotes(session, [
-                    new ConclaveVote("v1", candidateA),
-                    new ConclaveVote("v2", candidateA),
-                    new ConclaveVote("v3", candidateB),
-                    new ConclaveVote("v4", candidateB),
-                    new ConclaveVote("v5", candidateC),
+                    new ConclaveVote(makeUser("v1"), candidateA),
+                    new ConclaveVote(makeUser("v2"), candidateA),
+                    new ConclaveVote(makeUser("v3"), candidateB),
+                    new ConclaveVote(makeUser("v4"), candidateB),
+                    new ConclaveVote(makeUser("v5"), candidateC),
                 ]);
             }
 
@@ -270,11 +275,11 @@ describe("ConclaveVotingSession", () => {
 
             // Try 4: B gets 3/5 (60% > 50%, though < 2/3) -> B must be elected
             castVotes(session, [
-                new ConclaveVote("v1", candidateB),
-                new ConclaveVote("v2", candidateB),
-                new ConclaveVote("v3", candidateB),
-                new ConclaveVote("v4", candidateA),
-                new ConclaveVote("v5", candidateA),
+                new ConclaveVote(makeUser("v1"), candidateB),
+                new ConclaveVote(makeUser("v2"), candidateB),
+                new ConclaveVote(makeUser("v3"), candidateB),
+                new ConclaveVote(makeUser("v4"), candidateA),
+                new ConclaveVote(makeUser("v5"), candidateA),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -287,29 +292,29 @@ describe("ConclaveVotingSession", () => {
             // Try 1 & 2
             for (let i = 0; i < 2; i++) {
                 castVotes(session, [
-                    new ConclaveVote("v1", candidateA),
-                    new ConclaveVote("v2", candidateB),
-                    new ConclaveVote("v3", candidateC),
+                    new ConclaveVote(makeUser("v1"), candidateA),
+                    new ConclaveVote(makeUser("v2"), candidateB),
+                    new ConclaveVote(makeUser("v3"), candidateC),
                 ]);
             }
 
             // Try 3: C and B are the two most voted
             castVotes(session, [
-                new ConclaveVote("v1", candidateC),
-                new ConclaveVote("v2", candidateC),
-                new ConclaveVote("v3", candidateB),
-                new ConclaveVote("v4", candidateB),
-                new ConclaveVote("v5", candidateA),
+                new ConclaveVote(makeUser("v1"), candidateC),
+                new ConclaveVote(makeUser("v2"), candidateC),
+                new ConclaveVote(makeUser("v3"), candidateB),
+                new ConclaveVote(makeUser("v4"), candidateB),
+                new ConclaveVote(makeUser("v5"), candidateA),
             ]);
 
             expect(session.getCandidates()).toEqual([candidateB, candidateC]);
 
             // Try 4: 50%-50% tie between C and B -> Candidate B wins by alphabetical order
             castVotes(session, [
-                new ConclaveVote("v1", candidateC),
-                new ConclaveVote("v2", candidateC),
-                new ConclaveVote("v3", candidateB),
-                new ConclaveVote("v4", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateC),
+                new ConclaveVote(makeUser("v2"), candidateC),
+                new ConclaveVote(makeUser("v3"), candidateB),
+                new ConclaveVote(makeUser("v4"), candidateB),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -322,11 +327,11 @@ describe("ConclaveVotingSession", () => {
             // Exhaust 3 tries so currentCall reaches 3
             for (let i = 0; i < 3; i++) {
                 castVotes(session, [
-                    new ConclaveVote("v1", candidateA),
-                    new ConclaveVote("v2", candidateA),
-                    new ConclaveVote("v3", candidateB),
-                    new ConclaveVote("v4", candidateB),
-                    new ConclaveVote("v5", candidateC),
+                    new ConclaveVote(makeUser("v1"), candidateA),
+                    new ConclaveVote(makeUser("v2"), candidateA),
+                    new ConclaveVote(makeUser("v3"), candidateB),
+                    new ConclaveVote(makeUser("v4"), candidateB),
+                    new ConclaveVote(makeUser("v5"), candidateC),
                 ]);
             }
 
@@ -334,9 +339,9 @@ describe("ConclaveVotingSession", () => {
 
             // Finish election on 4th try
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateB),
             ]);
             expect(session.getState()).toBe(SessionState.RESULT);
             expect(session.getResult()).toBe(candidateA);
@@ -351,11 +356,11 @@ describe("ConclaveVotingSession", () => {
 
             // In the 1st round of the new election, 2/5 votes (40%) must NOT elect a candidate
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateB),
-                new ConclaveVote("v4", candidateC),
-                new ConclaveVote("v5", candidateD),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateB),
+                new ConclaveVote(makeUser("v4"), candidateC),
+                new ConclaveVote(makeUser("v5"), candidateD),
             ]);
 
             expect(session.getState()).toBe(SessionState.VOTING);
@@ -373,12 +378,12 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateA),
-                new ConclaveVote("v4", candidateA),
-                new ConclaveVote("v5", candidateB),
-                new ConclaveVote("v6", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateA),
+                new ConclaveVote(makeUser("v4"), candidateA),
+                new ConclaveVote(makeUser("v5"), candidateB),
+                new ConclaveVote(makeUser("v6"), candidateB),
             ]);
 
             expect(session.getState()).toBe(SessionState.RESULT);
@@ -389,11 +394,11 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateA),
-                new ConclaveVote("v4", candidateB),
-                new ConclaveVote("v5", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateA),
+                new ConclaveVote(makeUser("v4"), candidateB),
+                new ConclaveVote(makeUser("v5"), candidateB),
             ]);
 
             // 3/5 < 2/3
@@ -405,11 +410,11 @@ describe("ConclaveVotingSession", () => {
             const session = new ConclaveVotingSession(allCandidates);
 
             castVotes(session, [
-                new ConclaveVote("v1", candidateA),
-                new ConclaveVote("v2", candidateA),
-                new ConclaveVote("v3", candidateA),
-                new ConclaveVote("v4", candidateA),
-                new ConclaveVote("v5", candidateB),
+                new ConclaveVote(makeUser("v1"), candidateA),
+                new ConclaveVote(makeUser("v2"), candidateA),
+                new ConclaveVote(makeUser("v3"), candidateA),
+                new ConclaveVote(makeUser("v4"), candidateA),
+                new ConclaveVote(makeUser("v5"), candidateB),
             ]);
 
             // 4/5 > 2/3

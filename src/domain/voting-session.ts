@@ -3,7 +3,6 @@ import {
     ConclaveVote,
     ONUVote,
     CondominiumVote,
-    validateNoDuplicateVote
 } from './vote.js';
 import { SessionType } from './session-type.js';
 
@@ -67,7 +66,10 @@ export abstract class VotingSession<
     }
 
     protected validateNoDuplicateVote(vote: TVote): void {
-        validateNoDuplicateVote(this.votes, vote.voterId);
+        const isDuplicate = this.votes.some(v => v.voterId === vote.voterId);
+        if (isDuplicate) {
+            throw new Error(`Duplicate vote for voterId: ${vote.voterId}`);
+        }
     }
 
     public getResult(): TResult {
