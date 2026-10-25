@@ -91,7 +91,7 @@ export class VotingController {
 
     public deleteSession(user: User, sessionId: string): void {
         if (!user.isAdmin) {
-            throw new Error("Only administrators can delete sessions");
+            throw new Error("Only administrators can delete sessions.");
         }
 
         const index = this.sessions.findIndex(([s]) => s.getSessionId() === sessionId);
