@@ -5,6 +5,7 @@ import {
     CondominiumVote,
     validateNoDuplicateVote
 } from './vote.js';
+import { SessionType } from './session-type.js';
 
 // -=-=-=-=-=-=-=-=-=- Enums -=-=-=-=-=-=-=-=-=-
 
@@ -15,11 +16,8 @@ export enum SessionState {
     RESULT = 'RESULT'
 }
 
-export enum SessionType {
-    CONCLAVE = 'CONCLAVE',
-    CONDOMINIUM = 'CONDOMINIUM',
-    ONU = 'ONU'
-}
+// SessionType lives in its own module so users and sessions can share it; re-exported for existing imports.
+export { SessionType };
 
 // -=-=-=-=-=-=-=-=-=- Abstract Voting Session Class -=-=-=-=-=-=-=-=-=-
 
