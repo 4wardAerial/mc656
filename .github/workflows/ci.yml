@@ -12,11 +12,13 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
       - name: Repository checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Node.js setup
         uses: actions/setup-node@v4
@@ -25,10 +27,18 @@ jobs:
           cache: 'npm'
 
       - name: Dependencies installation
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Lint
         run: npm run lint
 
       - name: Coverage tests
         run: npm run test -- --coverage
+    
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

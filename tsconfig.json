@@ -6,7 +6,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "target": "esnext",
-    "types": [],
+    "types": ["node"],
 
     "sourceMap": true,
 
