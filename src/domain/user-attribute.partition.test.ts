@@ -2,6 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { SessionType } from './session-type.js';
 import { type VoterAttribute, assertAttributeMatches, parseAttribute } from './user.js';
 
+/*
+ * Escopo: atributo do votante (src/domain/user.ts).
+ *
+ * parseAttribute(sessionType, raw): entrada de duas dimensões, o tipo de sessão e o texto da
+ * coluna `attribute` do voterTable. Cada tipo de sessão tem a própria regra, então as classes
+ * são definidas por (tipo de sessão x forma do texto).
+ *
+ * assertAttributeMatches(sessionType, attribute): usa a mesma regra, mas sobre o valor tipado
+ * usado por User.voter. Classes CV1 a CV8.
+ */
 describe('parseAttribute – particionamento em classes de equivalência', () => {
     describe('CE1 (válida): CONCLAVE com o texto "None"', () => {
         it('converte "None" em null', () => {
