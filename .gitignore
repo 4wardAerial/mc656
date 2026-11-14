@@ -11,5 +11,9 @@ bin/
 # Coverage
 coverage/
 *.lcov
+
 # Runtime user tables (contain password hashes)
 data/
+
+# Build directory
+dist/
