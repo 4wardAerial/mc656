@@ -5,27 +5,6 @@ import { VotingController } from './voting-controller.js';
 import { User } from './user.js';
 import type { ICandidate } from './vote.js';
 
-/*
- * Teste estrutural: VotingController (src/domain/voting-controller.ts).
- *
- * Ponto de partida: relatório de cobertura (Vitest + @vitest/coverage-v8, o mesmo do CI) no
- * commit 676d9e9, que mostrava voting-controller.ts com 94,33% das linhas e 85,71% dos
- * branches (30/35). As lacunas eram:
- *
- *   G1  linhas 98-99   deleteSession de sessão inexistente       -> coberta por DS2 (partition)
- *   G2  linhas 72/86   default do switch de createSession         -> coberta por CS6 (partition)
- *   G3  linha 78       lado falso do ternário de CONDOMINIUM      -> este arquivo
- *   G4  linha 82       lado falso do ternário de ONU              -> este arquivo
- *   G5  linhas 149-155 else final de castVote                     -> inalcançável (ver abaixo)
- *   G6  vote.ts:27     último fallback do nome do candidato       -> este arquivo (via castVote)
- *
- * G5 não é coberta de propósito: antes do else, castVote já exige que o tipo do votante seja
- * igual ao da sessão, e toda sessão existente foi criada com um dos três tipos válidos.
- *
- * Cada teste verifica o comportamento que a lacuna representa (a sessão criada funciona de
- * ponta a ponta, ou o voto é recusado e nada é registrado), e não só a execução da linha.
- */
-
 const onuVoter = (id: string, permanent = false): User =>
     User.voter(id, { sessionType: SessionType.ONU, attribute: permanent });
 const condoVoter = (id: string, fraction: number): User =>
