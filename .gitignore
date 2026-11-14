@@ -17,3 +17,7 @@ data/
 
 # Build directory
 dist/
+
+# Mutation testing (StrykerJS)
+reports/
+.stryker-tmp/
