@@ -8,7 +8,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src",
-    "build": "tsc"
+    "build": "tsc",
+    "test:mutation": "stryker run"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,8 @@
   "homepage": "https://github.com/4wardAerial/mc656#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^5.0.0",
     "eslint": "^10.10.0",

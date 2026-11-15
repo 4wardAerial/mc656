@@ -50,6 +50,13 @@ describe('CSV table', () => {
         expect(() => readCsvTable(table, HEADER)).toThrow(`${table}:2`);
     });
 
+    // Structural gap (csv-table.ts:34): an empty file has no header line at all.
+    it('rejects an empty file, reporting the missing header', () => {
+        writeFileSync(table, '');
+
+        expect(() => readCsvTable(table, HEADER)).toThrow(`Invalid header in ${table}: expected "id,hashedPassword", got "".`);
+    });
+
     it('fails clearly when the table does not exist', () => {
         expect(() => readCsvTable(table, HEADER)).toThrow(`Table not found: ${table}`);
     });
