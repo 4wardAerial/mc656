@@ -38,7 +38,6 @@ jobs:
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         with:
-          args: >
-            -Dsonar.qualitygate.wait=true
+          args: ${{ github.ref == 'refs/heads/main' && '-Dsonar.qualitygate.wait=true' || '' }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
